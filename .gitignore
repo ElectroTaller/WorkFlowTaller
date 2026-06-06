@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Node / JS
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Logs
+*.log
+utils_log.txt
+
+# Entorno
+.env
+
+# Archivos del SO
+.DS_Store
+Thumbs.db

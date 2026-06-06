@@ -1,0 +1,42 @@
+======================================================
+PLANTILLA PARA SOLICITAR NUEVAS FUNCIONES EN INTERFACES
+======================================================
+(Puedes copiar y pegar este formato cuando necesites pedirme que agregue nuevos botones, casillas o listas desplegables a la aplicación).
+
+1. 🎯 VENTANA OBJETIVO: 
+   [Especifica en qué ventana, modal o sección quieres el cambio. Ej: "Modal de Nueva Orden de Trabajo", "Pestaña de Agenda", "Ficha del Cliente"]
+
+2. 📍 UBICACIÓN EXACTA: 
+   [¿En qué parte de esa ventana debe ir? Ej: "Justo debajo de 'Datos del Cliente'", "Al final de la sección de A/C", "A la derecha del botón Guardar"]
+
+3. 🧩 TIPO DE ELEMENTO A AGREGAR: 
+   [Elige el tipo de control que mejor se adapte:
+    - Checkbox (Casillas para elegir varias opciones a la vez)
+    - Radio Buttons / Botones (Para elegir una sola opción entre varias)
+    - Select / Desplegable (Lista para elegir una opción, útil si son muchas)
+    - Input de Texto / Área de texto (Para que el usuario escriba libremente)]
+
+4. 📋 OPCIONES O VALORES: 
+   [Lista exacta de lo que el usuario verá. Ej: 
+    - Garantía
+    - Mantenimiento Preventivo
+    - Diagnóstico
+    - Cambio de Tarjeta]
+
+5. ⚙️ COMPORTAMIENTO / LÓGICA (Opcional): 
+   [¿Pasa algo al seleccionarlo? Ej: "Si marcan 'Garantía', que aparezca una caja de texto preguntando 'Motivo'", "Por defecto debe venir marcada la opción X", "Si es Aire Acondicionado, muestra esto, sino escóndelo"]
+
+6. 💬 IMPACTO EN WHATSAPP / NOTIFICACIONES (Opcional): 
+   [¿Esta nueva información debe enviarse al cliente o al técnico por WhatsApp? Ej: "Quiero que en el mensaje al técnico aparezca un apartado que diga 'Aplica Garantía: Sí/No'"]
+
+------------------------------------------------------
+EJEMPLO PRÁCTICO LLENADO:
+------------------------------------------------------
+1. 🎯 VENTANA OBJETIVO: Modal de Nueva Orden de Trabajo (app.js / index.html).
+2. 📍 UBICACIÓN EXACTA: Debajo de la sección "Dispositivo a Reparar".
+3. 🧩 TIPO DE ELEMENTO: Select (Lista Desplegable).
+4. 📋 OPCIONES O VALORES: 
+    - Etiqueta: "Prioridad del Equipo"
+    - Opciones: "Normal", "Urgente", "VIP".
+5. ⚙️ COMPORTAMIENTO: Por defecto debe estar en "Normal". Si eligen "Urgente", que el texto se ponga rojo.
+6. 💬 IMPACTO EN WHATSAPP: Añadir una línea al mensaje de recepción que diga "Prioridad asignada: [Valor]".

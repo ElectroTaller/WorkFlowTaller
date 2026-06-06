@@ -94,7 +94,7 @@ const detailModal = {
 
       <div class="detail-section">
         <div class="detail-section-title">Falla y Diagnóstico</div>
-        ${order.reportedFault ? `<div class="detail-field span2" style="margin-bottom:8px"><span class="detail-field-label">Falla Reportada</span><span class="detail-field-value" style="line-height:1.5">${utils.escape(order.reportedFault)}</span></div>` : ''}
+        ${order.reportedFault ? `<div class="detail-field span2" style="margin-bottom:8px"><span class="detail-field-label">Falla Reportada por el Cliente</span><span class="detail-field-value" style="line-height:1.5">${utils.escape(order.reportedFault)}</span></div>` : ''}
         ${order.technicalNotes ? `<div class="detail-field span2"><span class="detail-field-label">Notas Técnicas</span><span class="detail-field-value" style="line-height:1.5">${utils.escape(order.technicalNotes)}</span></div>` : ''}
       </div>
 

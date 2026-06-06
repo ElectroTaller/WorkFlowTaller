@@ -175,7 +175,7 @@ const pdfModule = {
     doc.setFontSize(8); doc.setFont('helvetica', 'normal');
     var splitFault = doc.splitTextToSize(faultText, 176);
     var faultBoxH = Math.max(12 + (splitFault.length * 3.5), 16);
-    drawBox(14, y, 182, faultBoxH, 'Falla Reportada');
+    drawBox(14, y, 182, faultBoxH, 'Falla Reportada por el Cliente');
     doc.setTextColor(15, 23, 42); doc.text(splitFault, 17, y + 10);
     y += faultBoxH + 2;
 

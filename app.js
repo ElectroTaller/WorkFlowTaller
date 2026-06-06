@@ -1331,11 +1331,12 @@ const clientsUIModule = {
     if (!tbody) return;
 
     const q = clientsModule.normalize(filter);
+    const qNum = q.replace(/\D/g, '');
     const all = [...clientsModule.clients.values()].filter(c => {
       if (!q) return true;
       return (
         clientsModule.normalize(c.name).includes(q) ||
-        (c.phone && c.phone.replace(/\D/g, '').includes(q.replace(/\D/g, ''))) ||
+        (qNum && c.phone && c.phone.replace(/\D/g, '').includes(qNum)) ||
         (c.email && clientsModule.normalize(c.email).includes(q)) ||
         (c.address && clientsModule.normalize(c.address).includes(q)) ||
         (c.clientCedula && clientsModule.normalize(c.clientCedula).includes(q))

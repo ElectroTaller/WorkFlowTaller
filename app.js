@@ -657,23 +657,12 @@ const waModule = {
     else msg = this.template4_Avance(order);
 
     const phone = this.buildPhone(order.clientPhone || '');
-    const host = window.location.hostname || 'localhost';
 
     // Intentar enviar mediante el bot local
     try {
       toast.show('Enviando WhatsApp...', 'Conectando con el bot local', 'info', 5000);
-      const response = await fetch(`http://${host}:3000/send`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-api-key': 'wft-bot-2026' },
-        body: JSON.stringify({ phone, message: msg, line: order.waLine || 1 })
-      });
-
-      const data = await response.json();
-      if (data.success) {
-        toast.show('WhatsApp Automático', `Mensaje enviado a ${order.clientName}`, 'success');
-      } else {
-        throw new Error(data.error || 'Error del servidor local');
-      }
+      await whatsappApi.sendMessage(phone, msg, order.waLine || 1);
+      toast.show('WhatsApp Automático', `Mensaje enviado a ${order.clientName}`, 'success');
     } catch (error) {
       console.warn('Bot local no disponible o error:', error);
       toast.show('Bot no disponible', 'Abriendo modo manual...', 'warning', 3000);
@@ -829,39 +818,13 @@ const printModule = {
    M�"DULO: MODAL DETALLE
 �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"? */
 
-/* ======================================================================================================================
-   MÓDULO: CONFIGURACIÓN FIREBASE (UI)
-====================================================================================================================== */
-const configModal = {
-  open() {
-    const cfg = firebaseModule.getConfig() || {};
-    document.getElementById('cfg-api-key').value = cfg.apiKey || '';
-    document.getElementById('cfg-project-id').value = cfg.projectId || '';
-    document.getElementById('cfg-app-id').value = cfg.appId || '';
-    document.getElementById('cfg-auth-domain').value = cfg.authDomain || '';
-    document.getElementById('cfg-shop-name').value = cfg.shopName || '';
-    const phoneInput = document.getElementById('cfg-shop-phone');
-    if (phoneInput) phoneInput.value = cfg.shopPhone || '';
-    document.getElementById('modal-config').hidden = false;
+/* �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
+   M�"DULO: CONFIGURACI�"N FIREBASE (UI)
+�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"? */
 
-    // Obtener la configuración actual del bot de WhatsApp local
-    const host = window.location.hostname || 'localhost';
-    fetch(`http://${host}:3000/config`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.success && data.config) {
-          const chk = document.getElementById('cfg-bot-human');
-          if (chk) chk.checked = data.config.allowHumanContact;
-        }
-      })
-      .catch(err => console.warn('Bot local no detectado o apagado', err));
-  },
-  close() { document.getElementById('modal-config').hidden = true; },
-};
-
-/* ======================================================================================================================
-   MÓDULO: PDF (jsPDF)
-====================================================================================================================== */
+/* �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
+   M�"DULO: PDF (jsPDF)
+�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"? */
 
 const eventController = {
   init() {
@@ -878,7 +841,7 @@ const eventController = {
     document.getElementById('modal-config-close')?.addEventListener('click', () => configModal.close());
 
     /* Cerrar modal al click en backdrop */
-    ['modal-config'].forEach(id => {
+    ['modal-order', 'modal-detail', 'modal-config'].forEach(id => {
       document.getElementById(id)?.addEventListener('click', e => {
         if (e.target === e.currentTarget) {
           e.currentTarget.hidden = true;
@@ -895,11 +858,11 @@ const eventController = {
       if (!formModule.validate(data)) return;
       const btn = document.getElementById('btn-order-save');
       btn.disabled = true;
-      btn.textContent = 'Guardando...';
+      btn.textContent = 'Guardando�?�';
       try {
         await ordersModule.save(data);
         formModule.close();
-        toast.show(data.id ? 'N° Orden actualizada' : 'N° Orden creada', `${data.clientName} · ${data.deviceType}`, 'success');
+        toast.show(data.id ? '�o. Orden actualizada' : '�o. Orden creada', `${data.clientName} · ${data.deviceType}`, 'success');
       } catch (err) {
         toast.show('Error al guardar', err.message, 'error');
       } finally {
@@ -927,7 +890,7 @@ const eventController = {
     // Función: convierte texto a Tipo Título (Primera letra de cada palabra en mayúscula)
     const toTitleCase = str => str.replace(/\b\w/g, l => l.toUpperCase());
 
-    // Nombre del cliente EN MAYÚSCULAS en tiempo real
+    // Nombre del cliente �?' MAY�sSCULAS en tiempo real
     const nameEl = document.getElementById('field-client-name');
     if (nameEl) {
       nameEl.addEventListener('input', () => {
@@ -937,7 +900,7 @@ const eventController = {
       });
     }
 
-    // Campos de texto EN Tipo Título al salir del campo (field-ac-brand es select, se excluye)
+    // Campos de texto �?' Tipo Título al salir del campo (field-ac-brand es select, se excluye)
     ['field-v-brand', 'field-v-model',
       'field-device-desc', 'field-ac-model'].forEach(id => {
         const el = document.getElementById(id);
@@ -1030,26 +993,12 @@ const eventController = {
       }
     });
 
-    /* === Modal Detalle - botones de acción === */
+    /* === Modal Detalle �?" botones de acción === */
     document.getElementById('btn-detail-edit')?.addEventListener('click', () => {
       const order = detailModal.currentOrder;
       if (!order) return;
       detailModal.close();
       formModule.open(order);
-    });
-
-    document.getElementById('btn-detail-delete')?.addEventListener('click', async () => {
-      const order = detailModal.currentOrder;
-      if (!order) return;
-      if (confirm('¿Estás seguro de que deseas eliminar esta orden? Esta acción no se puede deshacer.')) {
-        try {
-          await ordersModule.delete(order.id);
-          detailModal.close();
-          toast.show('Orden eliminada', `La orden ${order.id} fue eliminada.`, 'success');
-        } catch (err) {
-          toast.show('Error al eliminar', err.message, 'error');
-        }
-      }
     });
 
     document.getElementById('btn-detail-wa-saludar')?.addEventListener('click', () => {
@@ -1136,9 +1085,10 @@ const eventController = {
         appId: document.getElementById('cfg-app-id').value.trim(),
         authDomain: document.getElementById('cfg-auth-domain').value.trim(),
         shopName: document.getElementById('cfg-shop-name').value.trim(),
-        shopPhone: document.getElementById('cfg-shop-phone') ? document.getElementById('cfg-shop-phone').value.trim() : ''
       };
-      
+      if (!cfg.apiKey || !cfg.projectId) {
+        toast.show('Faltan datos', 'API Key y Project ID son obligatorios.', 'warning'); return;
+      }
       firebaseModule.saveConfig(cfg);
       configModal.close();
       toast.show('Configuración guardada', 'Recargando para conectar a Firebase�?�', 'success');

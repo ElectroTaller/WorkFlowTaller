@@ -888,7 +888,6 @@ const waModule = {
   },
 
   syncOrdersToBot(orders) {
-    const host = window.location.hostname || 'localhost';
     // Mapear órdenes para enviar solo los datos necesarios y no saturar la red
     const payload = orders.map(o => ({
       id: o.id,
@@ -904,11 +903,7 @@ const waModule = {
       acData: o.acData
     }));
 
-    fetch(`http://${host}:3000/sync-orders`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ orders: payload })
-    }).catch(err => console.debug('Sync-orders al bot local falló (quizá está apagado)', err));
+    whatsappApi.syncOrders(payload).catch(err => console.debug('Sync-orders al bot local falló (quizá está apagado)', err));
   }
 };
 

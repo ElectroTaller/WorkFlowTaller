@@ -862,23 +862,12 @@ const waModule = {
     else msg = this.template4_Avance(order);
 
     const phone = this.buildPhone(order.clientPhone || '');
-    const host = window.location.hostname || 'localhost';
 
     // Intentar enviar mediante el bot local
     try {
       toast.show('Enviando WhatsApp...', 'Conectando con el bot local', 'info', 5000);
-      const response = await fetch(`http://${host}:3000/send`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, message: msg, line: order.waLine || 1 })
-      });
-
-      const data = await response.json();
-      if (data.success) {
-        toast.show('WhatsApp Automático', `Mensaje enviado a ${order.clientName}`, 'success');
-      } else {
-        throw new Error(data.error || 'Error del servidor local');
-      }
+      await whatsappApi.sendMessage(phone, msg, order.waLine || 1);
+      toast.show('WhatsApp Automático', `Mensaje enviado a ${order.clientName}`, 'success');
     } catch (error) {
       console.warn('Bot local no disponible o error:', error);
       toast.show('Bot no disponible', 'Abriendo modo manual...', 'warning', 3000);
@@ -888,7 +877,6 @@ const waModule = {
   },
 
   syncOrdersToBot(orders) {
-    const host = window.location.hostname || 'localhost';
     // Mapear órdenes para enviar solo los datos necesarios y no saturar la red
     const payload = orders.map(o => ({
       id: o.id,
@@ -904,11 +892,7 @@ const waModule = {
       acData: o.acData
     }));
 
-    fetch(`http://${host}:3000/sync-orders`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ orders: payload })
-    }).catch(err => console.debug('Sync-orders al bot local falló (quizá está apagado)', err));
+    whatsappApi.syncOrders(payload).catch(err => console.debug('Sync-orders al bot local falló (quizá está apagado)', err));
   }
 };
 

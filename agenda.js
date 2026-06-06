@@ -1246,13 +1246,8 @@ _ElectroTaller - Gestión de Agenda_`;
         if (phone.length === 7 || phone.length === 8) phone = '507' + phone;
 
         const payload = { phone, message: msg };
-        fetch('http://localhost:3000/send', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'x-api-key': 'wft-bot-2026' },
-          body: JSON.stringify(payload)
-        })
-          .then(r => {
-            if (!r.ok) throw new Error('Error de red');
+        whatsappApi.sendMessage(phone, msg)
+          .then(() => {
             if (window.toast) toast.show('Enviado por bot', `Mensaje enviado a ${rawPhone}.`, 'success');
             else console.log(`Mensaje enviado a ${rawPhone}.`);
           })
@@ -1393,13 +1388,8 @@ _ElectroTaller - Electronica Automotriz y HVAC_`;
       if (window.toast) toast.show('Enviando WhatsApp...', 'Conectando con el bot local', 'info', 5000);
 
       const payload = { phone, message: msg };
-      fetch('http://localhost:3000/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-api-key': 'wft-bot-2026' },
-        body: JSON.stringify(payload)
-      })
-        .then(r => {
-          if (!r.ok) throw new Error('Error de red');
+      whatsappApi.sendMessage(phone, msg)
+        .then(() => {
           if (window.toast) toast.show('Enviado por bot', 'Mensaje enviado silenciosamente.', 'success');
           else alert('Mensaje enviado silenciosamente.');
         })

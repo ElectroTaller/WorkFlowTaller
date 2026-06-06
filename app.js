@@ -6,196 +6,6 @@
 
 'use strict';
 
-/* �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
-   M�"DULO: UTILIDADES
-�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"? */
-const utils = {
-  /** Genera un ID de orden legible y único */
-  generateOrderId() {
-    const now = new Date();
-    const date = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
-    const rand = Math.random().toString(36).substring(2, 5).toUpperCase();
-    return `ORD-${date}-${rand}`;
-  },
-
-  /** Formatea un timestamp de Firestore o Date a string legible */
-  formatDate(value, includeTime = false) {
-    if (!value) return '�?"';
-    let date;
-    if (value?.toDate) date = value.toDate();
-    else if (value instanceof Date) date = value;
-    else date = new Date(value);
-    if (isNaN(date)) return '-';
-    const opts = { day: '2-digit', month: '2-digit', year: 'numeric' };
-    if (includeTime) {
-      opts.hour = '2-digit'; opts.minute = '2-digit';
-    }
-    return date.toLocaleDateString('es-PA', opts);
-  },
-
-  /** Cuántos días desde una fecha (Timestamp o string) */
-  daysSince(value) {
-    if (!value) return 0;
-    let date;
-    if (value?.toDate) date = value.toDate();
-    else if (value instanceof Date) date = value;
-    else date = new Date(value);
-    if (isNaN(date)) return 0;
-    return Math.floor((Date.now() - date.getTime()) / 86_400_000);
-  },
-
-  /** Escapa HTML para evitar XSS */
-  escape(str) {
-    if (!str) return '';
-    return String(str)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#039;');
-  },
-
-  /** Formatea un número como moneda (USD) */
-  formatCurrency(value) {
-    const num = Number(value) || 0;
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(num);
-  },
-
-  /** Debounce simple */
-  debounce(fn, delay = 300) {
-    let t;
-    return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), delay); };
-  },
-
-  /** Obtiene el color de acento de la columna basado en el estado */
-  columnAccentColor(status) {
-    const colors = {
-      recepcion: 'var(--c-accent)',
-      diagnostico: 'var(--c-warning)',
-      espera_repuestos: 'var(--c-purple)',
-      reparacion: 'var(--c-orange)',
-      listo: 'var(--c-success)',
-      entregado: 'var(--t-muted)'
-    };
-    return colors[status] || 'var(--c-surface-2)';
-  },
-
-  /** Obtiene la clase CSS para el badge según el tipo de dispositivo */
-  deviceBadgeClass(deviceType) {
-    if (!deviceType) return 'badge-otro';
-    const t = deviceType.toLowerCase();
-    if (t.includes('ecu') || t.includes('computadora')) return 'badge-ecu';
-    if (t.includes('tablero')) return 'badge-tablero';
-    if (t.includes('a/c') || t.includes('aire')) return 'badge-ac';
-    return 'badge-otro';
-  }
-};
-
-/* ======================================================================================================================
-   MÓDULO: TOAST (notificaciones)
-====================================================================================================================== */
-const toast = {
-  container: null,
-  init() {
-    this.container = document.getElementById('toast-container');
-  },
-  show(title, message, type = 'info', duration = 5000) {
-    if (!this.container) this.init();
-    const el = document.createElement('div');
-    el.className = `toast toast-${type}`;
-    el.innerHTML = `
-      <div class="toast-title">${title}</div>
-      <div class="toast-message">${message}</div>
-    `;
-    this.container?.appendChild(el);
-    setTimeout(() => {
-      el.classList.add('hiding');
-      el.addEventListener('animationend', () => el.remove(), { once: true });
-    }, duration);
-  },
-};
-window.toast = toast;
-
-
-const firebaseModule = {
-  db: null,
-  isConnected: false,
-  CONFIG_KEY: 'wft_firebase_config',
-
-    getConfig() {
-    let saved = null;
-    try {
-      saved = JSON.parse(localStorage.getItem(this.CONFIG_KEY));
-    } catch(e) {}
-    if (saved) return saved;
-
-    return {
-      apiKey: "AIzaSyDGh58HTTjzk850JzzQWfBGzzHuNcsMjZs",
-      authDomain: "workflowtaller-6c4f2.firebaseapp.com",
-      projectId: "workflowtaller-6c4f2",
-      storageBucket: "workflowtaller-6c4f2.firebasestorage.app",
-      messagingSenderId: "71679759534",
-      appId: "1:71679759534:web:90ba28fdf1a7739a77c93f"
-    };
-  },
-
-  saveConfig(cfg) {
-    localStorage.setItem(this.CONFIG_KEY, JSON.stringify(cfg));
-  },
-
-  clearConfig() {
-    localStorage.removeItem(this.CONFIG_KEY);
-  },
-
-  async init() {
-    const cfg = this.getConfig();
-    if (!cfg?.apiKey || !cfg?.projectId) {
-      this.setStatus('local');
-      return false;
-    }
-    try {
-      console.log('[Firebase] Iniciando con proyecto:', cfg.projectId);
-
-      if (!firebase.apps.length) {
-        firebase.initializeApp(cfg);
-      }
-      this.db = firebase.firestore();
-
-      // Reactivar el "Sistema anti-olvido" (Persistencia offline nativa)
-      this.db.enablePersistence({ synchronizeTabs: true }).catch(err => {
-        if (err.code === 'failed-precondition') console.warn('[Firebase] Offline: múltiples tabs abiertas.');
-        if (err.code === 'unimplemented') console.warn('[Firebase] Offline: no soportado.');
-      });
-
-      // Marcar como conectado �?" onSnapshot en startListening detectará errores reales
-      this.setStatus('online');
-      this.isConnected = true;
-      console.log('[Firebase] �o. SDK inicializado correctamente');
-      return true;
-    } catch (err) {
-      console.error('[Firebase] �O Error al inicializar:', err.message);
-      this.db = null;
-      this.setStatus('local');
-      toast.show('Error Firebase', err.message, 'error', 6000);
-      return false;
-    }
-  },
-
-  setStatus(state) {
-    const dot = document.getElementById('status-dot');
-    const text = document.getElementById('status-text');
-    if (!dot || !text) return;
-    dot.className = `status-dot ${state}`;
-    const labels = { online: '🟢 Conectado', offline: '🔴 Sin conexión', local: '🟡 Modo Local' };
-    text.textContent = labels[state] || state;
-  },
-
-  getCollection() {
-    if (!this.db) return null;
-    return this.db.collection('orders');
-  },
-};
-
 /* "?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?
    M"DULO: ORDENES (CRUD)
 "?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"? */
@@ -991,6 +801,53 @@ const waModule = {
       `📱 *Equipo:* ${order.deviceType}${order.deviceDesc ? ' - ' + order.deviceDesc : ''}`,
       sep,
       '',
+      '',
+      `_ElectroTaller - Electronica Automotriz y HVAC_`,
+    ].join('\n');
+  },
+
+  /* Plantilla 5: Espera Consignación */
+  template5_Consignacion(order) {
+    const shop = this.getShopName();
+    const sep = this.sep();
+    let statusMsg = `Nos encontramos a la espera de la consignación de las piezas faltantes para poder realizar el diagnóstico y/o reparación de su equipo.`;
+    return [
+      `🏪 *${shop}*`,
+      `🛠️ *RECORDATORIO DE PIEZAS FALTANTES*`,
+      sep,
+      `Estimado/a *${order.clientName}*,`,
+      '',
+      statusMsg,
+      '',
+      sep,
+      `🔖 *Orden:* ${order.id}`,
+      order.clientPin ? `🔑 *PIN Rápido:* ${order.clientPin}` : '',
+      `📱 *Equipo:* ${order.deviceType}${order.deviceDesc ? ' - ' + order.deviceDesc : ''}`,
+      sep,
+      '',
+      `_ElectroTaller - Electronica Automotriz y HVAC_`,
+    ].join('\n');
+  },
+
+  /* Plantilla 6: En Reparación */
+  template6_EnReparacion(order) {
+    const shop = this.getShopName();
+    const sep = this.sep();
+    let statusMsg = `Su equipo se encuentra actualmente en proceso de reparación en nuestro laboratorio.`;
+    return [
+      `🏪 *${shop}*`,
+      `🛠️ *AVISO DE REPARACIÓN*`,
+      sep,
+      `Estimado/a *${order.clientName}*,`,
+      '',
+      statusMsg,
+      '',
+      sep,
+      `🔖 *Orden:* ${order.id}`,
+      order.clientPin ? `🔑 *PIN Rápido:* ${order.clientPin}` : '',
+      `📱 *Equipo:* ${order.deviceType}${order.deviceDesc ? ' - ' + order.deviceDesc : ''}`,
+      sep,
+      '',
       `_ElectroTaller - Electronica Automotriz y HVAC_`,
     ].join('\n');
   },
@@ -1000,6 +857,8 @@ const waModule = {
     if (templateNumber === 1) msg = this.template1_Ingreso(order);
     else if (templateNumber === 2) msg = this.template2_Listo(order);
     else if (templateNumber === 3) msg = this.template3_Entrega(order);
+    else if (templateNumber === 5) msg = this.template5_Consignacion(order);
+    else if (templateNumber === 6) msg = this.template6_EnReparacion(order);
     else msg = this.template4_Avance(order);
 
     const phone = this.buildPhone(order.clientPhone || '');
@@ -1822,6 +1681,14 @@ const eventController = {
     });
     document.getElementById('btn-detail-wa3')?.addEventListener('click', () => {
       if (detailModal.currentOrder) waModule.open(detailModal.currentOrder, 3);
+    });
+    
+    document.getElementById('btn-detail-wa5')?.addEventListener('click', () => {
+      if (detailModal.currentOrder) waModule.open(detailModal.currentOrder, 5);
+    });
+
+    document.getElementById('btn-detail-wa6')?.addEventListener('click', () => {
+      if (detailModal.currentOrder) waModule.open(detailModal.currentOrder, 6);
     });
 
     document.getElementById('btn-detail-pdf')?.addEventListener('click', () => {

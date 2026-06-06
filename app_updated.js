@@ -6,225 +6,6 @@
 
 'use strict';
 
-/* �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
-   M�"DULO: UTILIDADES
-�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"? */
-const utils = {
-  /** Genera un ID de orden legible y único */
-  generateOrderId() {
-    const now = new Date();
-    const date = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
-    const rand = Math.random().toString(36).substring(2, 5).toUpperCase();
-    return `ORD-${date}-${rand}`;
-  },
-
-  /** Formatea un timestamp de Firestore o Date a string legible */
-  formatDate(value, includeTime = false) {
-    if (!value) return '�?"';
-    let date;
-    if (value?.toDate) date = value.toDate();
-    else if (value instanceof Date) date = value;
-    else date = new Date(value);
-    if (isNaN(date)) return '�?"';
-    const opts = { day: '2-digit', month: '2-digit', year: 'numeric' };
-    if (includeTime) { opts.hour = '2-digit'; opts.minute = '2-digit'; }
-    return date.toLocaleDateString('es-MX', opts);
-  },
-
-  /** Calcula cuántos días LABORALES han pasado (L-V de 8-12 y 13-18) */
-  daysSince(value) {
-    if (!value) return 0;
-    let start = value?.toDate ? value.toDate() : new Date(value);
-    let end = new Date();
-    if (isNaN(start) || start >= end) return 0;
-
-    let totalWorkingMs = 0;
-    let current = new Date(start);
-
-    while (current <= end) {
-      let day = current.getDay();
-      // Solo de Lunes (1) a Viernes (5)
-      if (day >= 1 && day <= 5) {
-        let y = current.getFullYear();
-        let m = current.getMonth();
-        let d = current.getDate();
-
-        // Horarios del turno
-        let mStart = new Date(y, m, d, 8, 0, 0).getTime();
-        let mEnd = new Date(y, m, d, 12, 0, 0).getTime();
-        let aStart = new Date(y, m, d, 13, 0, 0).getTime();
-        let aEnd = new Date(y, m, d, 18, 0, 0).getTime();
-
-        let dayStart = (current.toDateString() === start.toDateString()) ? start.getTime() : new Date(y, m, d, 0, 0, 0).getTime();
-        let dayEnd = (current.toDateString() === end.toDateString()) ? end.getTime() : new Date(y, m, d, 23, 59, 59, 999).getTime();
-
-        // Turno mañana
-        let mIntersectStart = Math.max(dayStart, mStart);
-        let mIntersectEnd = Math.min(dayEnd, mEnd);
-        if (mIntersectEnd > mIntersectStart) totalWorkingMs += (mIntersectEnd - mIntersectStart);
-
-        // Turno tarde
-        let aIntersectStart = Math.max(dayStart, aStart);
-        let aIntersectEnd = Math.min(dayEnd, aEnd);
-        if (aIntersectEnd > aIntersectStart) totalWorkingMs += (aIntersectEnd - aIntersectStart);
-      }
-
-      // Pasar al día siguiente a las 00:00:00
-      current.setDate(current.getDate() + 1);
-      current.setHours(0, 0, 0, 0);
-    }
-
-    // 1 día laboral equivale a 9 horas (4 en la mañana + 5 en la tarde)
-    return totalWorkingMs / (9 * 60 * 60 * 1000);
-  },
-
-  /** Formatea moneda en pesos mexicanos */
-  formatCurrency(amount) {
-    if (amount === undefined || amount === null || amount === '') return '$0.00';
-    return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(Number(amount) || 0);
-  },
-
-  /** Escapa caracteres HTML peligrosos */
-  escape(str) {
-    if (!str) return '';
-    return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
-  },
-
-  /** Obtiene el color/clase del badge según tipo de dispositivo */
-  deviceBadgeClass(type) {
-    const map = {
-      'ECU Automotriz': 'badge-ecu',
-      'Tablero Electrónico': 'badge-tablero',
-      'Tarjeta A/C': 'badge-ac',
-      'Instalación A/C': 'badge-ac',
-      'Otro': 'badge-otro',
-    };
-    return map[type] || 'badge-otro';
-  },
-
-  /** Color del acento de la columna Kanban */
-  columnAccentColor(status) {
-    const map = {
-      'Nuevo Ingreso': 'hsl(200,80%,60%)',
-      'Diagnóstico': 'hsl(45,100%,55%)',
-      'En Reparación': 'hsl(280,80%,65%)',
-      'Esperando Piezas': 'hsl(25,100%,55%)',
-      'Listo para Entrega': 'hsl(140,70%,50%)',
-    };
-    return map[status] || 'hsl(220,15%,40%)';
-  },
-};
-
-/* �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
-   M�"DULO: TOAST
-�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"? */
-const toast = {
-  container: null,
-  init() { this.container = document.getElementById('toast-container'); },
-
-  show(title, msg = '', type = 'info', duration = 5000) {
-    if (!this.container) return;
-    const icons = {
-      success: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`,
-      error: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`,
-      info: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`,
-      warning: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
-    };
-    const el = document.createElement('div');
-    el.className = `toast ${type}`;
-    el.innerHTML = `
-      <div class="toast-icon">${icons[type] || icons.info}</div>
-      <div class="toast-text">
-        <div class="toast-title">${utils.escape(title)}</div>
-        ${msg ? `<div class="toast-msg">${utils.escape(msg)}</div>` : ''}
-      </div>
-    `;
-    this.container.appendChild(el);
-    setTimeout(() => {
-      el.classList.add('hiding');
-      el.addEventListener('animationend', () => el.remove(), { once: true });
-    }, duration);
-  },
-};
-window.toast = toast;
-
-/* �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
-   M�"DULO: FIREBASE
-�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"? */
-const firebaseModule = {
-  db: null,
-  isConnected: false,
-  CONFIG_KEY: 'wft_firebase_config',
-
-  getConfig() {
-    // Forzar el uso de la nueva configuración (ignorando la caché antigua)
-    return {
-      apiKey: "AIzaSyDGh58HTTjzk850JzzQWfBGzzHuNcsMjZs",
-      authDomain: "workflowtaller-6c4f2.firebaseapp.com",
-      projectId: "workflowtaller-6c4f2",
-      storageBucket: "workflowtaller-6c4f2.firebasestorage.app",
-      messagingSenderId: "71679759534",
-      appId: "1:71679759534:web:90ba28fdf1a7739a77c93f"
-    };
-  },
-
-  saveConfig(cfg) {
-    localStorage.setItem(this.CONFIG_KEY, JSON.stringify(cfg));
-  },
-
-  clearConfig() {
-    localStorage.removeItem(this.CONFIG_KEY);
-  },
-
-  async init() {
-    const cfg = this.getConfig();
-    if (!cfg?.apiKey || !cfg?.projectId) {
-      this.setStatus('local');
-      return false;
-    }
-    try {
-      console.log('[Firebase] Iniciando con proyecto:', cfg.projectId);
-
-      if (!firebase.apps.length) {
-        firebase.initializeApp(cfg);
-      }
-      this.db = firebase.firestore();
-
-      // Reactivar el "Sistema anti-olvido" (Persistencia offline nativa)
-      this.db.enablePersistence({ synchronizeTabs: true }).catch(err => {
-        if (err.code === 'failed-precondition') console.warn('[Firebase] Offline: múltiples tabs abiertas.');
-        if (err.code === 'unimplemented') console.warn('[Firebase] Offline: no soportado.');
-      });
-
-      // Marcar como conectado �?" onSnapshot en startListening detectará errores reales
-      this.setStatus('online');
-      this.isConnected = true;
-      console.log('[Firebase] �o. SDK inicializado correctamente');
-      return true;
-    } catch (err) {
-      console.error('[Firebase] �O Error al inicializar:', err.message);
-      this.db = null;
-      this.setStatus('local');
-      toast.show('Error Firebase', err.message, 'error', 6000);
-      return false;
-    }
-  },
-
-  setStatus(state) {
-    const dot = document.getElementById('status-dot');
-    const text = document.getElementById('status-text');
-    if (!dot || !text) return;
-    dot.className = `status-dot ${state}`;
-    const labels = { online: '🟢 Conectado', offline: '🔴 Sin conexión', local: '🟡 Modo Local' };
-    text.textContent = labels[state] || state;
-  },
-
-  getCollection() {
-    if (!this.db) return null;
-    return this.db.collection('orders');
-  },
-};
-
 /* "?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?
    M"DULO: ORDENES (CRUD)
 "?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"? */
@@ -1020,6 +801,53 @@ const waModule = {
       `📱 *Equipo:* ${order.deviceType}${order.deviceDesc ? ' - ' + order.deviceDesc : ''}`,
       sep,
       '',
+      '',
+      `_ElectroTaller - Electronica Automotriz y HVAC_`,
+    ].join('\n');
+  },
+
+  /* Plantilla 5: Espera Consignación */
+  template5_Consignacion(order) {
+    const shop = this.getShopName();
+    const sep = this.sep();
+    let statusMsg = `Nos encontramos a la espera de la consignación de las piezas faltantes para poder realizar el diagnóstico y/o reparación de su equipo.`;
+    return [
+      `🏪 *${shop}*`,
+      `🛠️ *RECORDATORIO DE PIEZAS FALTANTES*`,
+      sep,
+      `Estimado/a *${order.clientName}*,`,
+      '',
+      statusMsg,
+      '',
+      sep,
+      `🔖 *Orden:* ${order.id}`,
+      order.clientPin ? `🔑 *PIN Rápido:* ${order.clientPin}` : '',
+      `📱 *Equipo:* ${order.deviceType}${order.deviceDesc ? ' - ' + order.deviceDesc : ''}`,
+      sep,
+      '',
+      `_ElectroTaller - Electronica Automotriz y HVAC_`,
+    ].join('\n');
+  },
+
+  /* Plantilla 6: En Reparación */
+  template6_EnReparacion(order) {
+    const shop = this.getShopName();
+    const sep = this.sep();
+    let statusMsg = `Su equipo se encuentra actualmente en proceso de reparación en nuestro laboratorio.`;
+    return [
+      `🏪 *${shop}*`,
+      `🛠️ *AVISO DE REPARACIÓN*`,
+      sep,
+      `Estimado/a *${order.clientName}*,`,
+      '',
+      statusMsg,
+      '',
+      sep,
+      `🔖 *Orden:* ${order.id}`,
+      order.clientPin ? `🔑 *PIN Rápido:* ${order.clientPin}` : '',
+      `📱 *Equipo:* ${order.deviceType}${order.deviceDesc ? ' - ' + order.deviceDesc : ''}`,
+      sep,
+      '',
       `_ElectroTaller - Electronica Automotriz y HVAC_`,
     ].join('\n');
   },
@@ -1029,6 +857,8 @@ const waModule = {
     if (templateNumber === 1) msg = this.template1_Ingreso(order);
     else if (templateNumber === 2) msg = this.template2_Listo(order);
     else if (templateNumber === 3) msg = this.template3_Entrega(order);
+    else if (templateNumber === 5) msg = this.template5_Consignacion(order);
+    else if (templateNumber === 6) msg = this.template6_EnReparacion(order);
     else msg = this.template4_Avance(order);
 
     const phone = this.buildPhone(order.clientPhone || '');
@@ -1835,6 +1665,14 @@ const eventController = {
     });
     document.getElementById('btn-detail-wa3')?.addEventListener('click', () => {
       if (detailModal.currentOrder) waModule.open(detailModal.currentOrder, 3);
+    });
+    
+    document.getElementById('btn-detail-wa5')?.addEventListener('click', () => {
+      if (detailModal.currentOrder) waModule.open(detailModal.currentOrder, 5);
+    });
+
+    document.getElementById('btn-detail-wa6')?.addEventListener('click', () => {
+      if (detailModal.currentOrder) waModule.open(detailModal.currentOrder, 6);
     });
 
     document.getElementById('btn-detail-pdf')?.addEventListener('click', () => {

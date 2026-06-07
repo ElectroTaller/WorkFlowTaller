@@ -113,8 +113,8 @@ const ordersModule = {
     } else {
       this.orders.set(id, { id, ...data });
       this.saveLocal();
-      kanban.render([...this.orders.values()]);
     }
+    if (window.syncBotConfig) window.syncBotConfig();
     return { id, ...data };
   },
 
@@ -1065,18 +1065,25 @@ const eventController = {
       e.preventDefault();
 
       // Guardar configuración del Bot local
-      const chk = document.getElementById('cfg-bot-human');
-      if (chk) {
-        try {
-          const host = window.location.hostname || 'localhost';
-          await fetch(`http://${host}:3000/config`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ allowHumanContact: chk.checked })
-          });
-        } catch (err) {
-          console.warn('No se pudo guardar la config del bot', err);
-        }
+      const chkHuman = document.getElementById('cfg-bot-human');
+      const chkAfterHours = document.getElementById('cfg-bot-afterhours');
+      const shopPhone = document.getElementById('cfg-shop-phone')?.value.trim() || '';
+      const shopPhone2 = document.getElementById('cfg-shop-phone-2')?.value.trim() || '';
+      
+      try {
+        const host = window.location.hostname || 'localhost';
+        await fetch(`http://${host}:3000/config`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            allowHumanContact: chkHuman ? chkHuman.checked : true,
+            notifyAfterHours: chkAfterHours ? chkAfterHours.checked : true,
+            shopPhone,
+            shopPhone2
+          })
+        });
+      } catch (err) {
+        console.warn('No se pudo guardar la config del bot', err);
       }
 
       const cfg = {
@@ -1085,6 +1092,8 @@ const eventController = {
         appId: document.getElementById('cfg-app-id').value.trim(),
         authDomain: document.getElementById('cfg-auth-domain').value.trim(),
         shopName: document.getElementById('cfg-shop-name').value.trim(),
+        shopPhone: document.getElementById('cfg-shop-phone').value.trim(),
+        shopPhone2: document.getElementById('cfg-shop-phone-2').value.trim(),
       };
       if (!cfg.apiKey || !cfg.projectId) {
         toast.show('Faltan datos', 'API Key y Project ID son obligatorios.', 'warning'); return;

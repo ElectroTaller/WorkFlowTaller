@@ -4,8 +4,7 @@ const firebaseModule = {
   CONFIG_KEY: 'wft_firebase_config',
 
   getConfig() {
-    // Forzar el uso de la nueva configuración (ignorando la caché antigua)
-    return {
+    const defaultCfg = {
       apiKey: "AIzaSyDGh58HTTjzk850JzzQWfBGzzHuNcsMjZs",
       authDomain: "workflowtaller-6c4f2.firebaseapp.com",
       projectId: "workflowtaller-6c4f2",
@@ -13,6 +12,13 @@ const firebaseModule = {
       messagingSenderId: "71679759534",
       appId: "1:71679759534:web:90ba28fdf1a7739a77c93f"
     };
+    try {
+      const stored = JSON.parse(localStorage.getItem(this.CONFIG_KEY));
+      if (stored) {
+        return { ...defaultCfg, ...stored };
+      }
+    } catch(e) {}
+    return defaultCfg;
   },
 
   saveConfig(cfg) {
@@ -73,3 +79,27 @@ const firebaseModule = {
 };
 
 window.firebaseModule = firebaseModule;
+
+window.syncBotConfig = async function() {
+    const cfg = firebaseModule.getConfig() || {};
+    try {
+        const host = window.location.hostname || 'localhost';
+        await fetch(`http://${host}:3000/config`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                allowHumanContact: cfg.allowHumanContact !== undefined ? cfg.allowHumanContact : true,
+                notifyAfterHours: cfg.notifyAfterHours !== undefined ? cfg.notifyAfterHours : true,
+                shopPhone: cfg.shopPhone || '',
+                shopPhone2: cfg.shopPhone2 || ''
+            })
+        });
+        console.log('[Bot] Configuración sincronizada con el bot (Admins actualizados)');
+    } catch(e) {
+        console.warn('[Bot] No se pudo sincronizar la configuración con el bot en localhost:3000');
+    }
+};
+
+window.addEventListener('DOMContentLoaded', () => {
+    if (window.syncBotConfig) window.syncBotConfig();
+});

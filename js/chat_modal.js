@@ -124,9 +124,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 lastMessageTime = formatTime(lastMsg.timestamp);
             }
 
+            const avatarContent = chat.profilePicUrl 
+                ? `<img src="${chat.profilePicUrl}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />`
+                : `<svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24" style="color:#aaa;"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`;
+
             chatItem.innerHTML = `
-                <div class="chat-item-avatar">
-                    <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24" style="color:#aaa;"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                <div class="chat-item-avatar" style="overflow: hidden;">
+                    ${avatarContent}
                 </div>
                 <div class="chat-item-content">
                     <div class="chat-item-name">${chat.name || chat.id}</div>
@@ -146,9 +150,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderChatMessages(chat) {
+        const avatarContent = chat.profilePicUrl 
+            ? `<img src="${chat.profilePicUrl}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />`
+            : `<svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24" style="color:#aaa;"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`;
+
         chatHeader.innerHTML = `
-            <div class="chat-item-avatar" style="width: 40px; height: 40px; margin-right: 12px; background: #dfe5e7; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24" style="color:#aaa;"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            <div class="chat-item-avatar" style="width: 40px; height: 40px; margin-right: 12px; background: #dfe5e7; border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                ${avatarContent}
             </div>
             <div>
                 <div style="font-weight: 600; font-size: 1.1rem; color: var(--t-primary);">${chat.name}</div>
@@ -223,42 +231,43 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Carga Inicial y Polling ---
 
     function checkForNewMessages() {
-        let maxTimestamp = lastSeenMessageTimestamp;
+        let newMaxTimestamp = lastSeenMessageTimestamp;
         let hasNewIncoming = false;
+        let latestIncomingChatId = null;
+        let latestIncomingLine = null;
         
-        const checkLine = (lineData) => {
+        const checkLine = (lineData, lineNum) => {
             if (!lineData) return;
             lineData.forEach(chat => {
                 if (chat.messages && chat.messages.length > 0) {
-                    const lastMsg = chat.messages[chat.messages.length - 1];
-                    if (lastMsg.timestamp > maxTimestamp) {
-                        maxTimestamp = lastMsg.timestamp;
-                        if (!lastMsg.fromMe && lastMsg.timestamp > lastSeenMessageTimestamp) {
-                            hasNewIncoming = true;
+                    chat.messages.forEach(msg => {
+                        if (msg.timestamp > newMaxTimestamp) {
+                            newMaxTimestamp = msg.timestamp;
                         }
-                    }
+                        if (!msg.fromMe && msg.timestamp > lastSeenMessageTimestamp) {
+                            hasNewIncoming = true;
+                            latestIncomingChatId = chat.id;
+                            latestIncomingLine = lineNum;
+                        }
+                    });
                 }
             });
         };
         
-        checkLine(currentChatsData.line1);
-        checkLine(currentChatsData.line2);
+        checkLine(currentChatsData.line1, 1);
+        checkLine(currentChatsData.line2, 2);
         
         // Inicializar la primera vez sin disparar
         if (lastSeenMessageTimestamp === 0) {
-            lastSeenMessageTimestamp = maxTimestamp;
-            return false;
+            lastSeenMessageTimestamp = newMaxTimestamp;
+            return { hasNew: false };
         }
         
-        if (hasNewIncoming) {
-            lastSeenMessageTimestamp = maxTimestamp;
-            return true;
+        if (newMaxTimestamp > lastSeenMessageTimestamp) {
+            lastSeenMessageTimestamp = newMaxTimestamp;
         }
         
-        if (maxTimestamp > lastSeenMessageTimestamp) {
-            lastSeenMessageTimestamp = maxTimestamp;
-        }
-        return false;
+        return { hasNew: hasNewIncoming, chatId: latestIncomingChatId, line: latestIncomingLine };
     }
 
     async function loadChatsData(silent = false) {
@@ -271,26 +280,48 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (data.success) {
                 currentChatsData = data.data;
-                const isNew = checkForNewMessages();
+                const newInfo = checkForNewMessages();
                 
-                if (isNew) {
+                if (newInfo.hasNew) {
                     // Abrir automáticamente si estaba cerrado
                     if (modalActiveChats.hidden) {
                         modalActiveChats.hidden = false;
                         modalActiveChats.style.display = 'flex';
                     }
                     resetInactivityTimer();
+                    
+                    // Cambiar a la línea del nuevo mensaje si es diferente
+                    if (newInfo.line && newInfo.line !== currentActiveLine) {
+                        currentActiveLine = newInfo.line;
+                        lineTabs.forEach(t => {
+                            if (parseInt(t.getAttribute('data-line')) === currentActiveLine) {
+                                t.classList.add('active');
+                                t.style.borderBottom = '2px solid var(--c-primary)';
+                                t.style.color = 'var(--c-primary)';
+                            } else {
+                                t.classList.remove('active');
+                                t.style.borderBottom = 'none';
+                                t.style.color = 'var(--t-secondary)';
+                            }
+                        });
+                    }
+                    
+                    // Seleccionar el chat que recibió el mensaje
+                    if (newInfo.chatId) {
+                        currentActiveChatId = newInfo.chatId;
+                    }
                 }
                 
                 // Actualizar interfaz si está abierto
                 if (!modalActiveChats.hidden) {
                     renderChatsList();
                     if (currentActiveChatId) {
-                        // Solo hacer scroll si ya estaba al final para no molestar al usuario
+                        // Forzar scroll al fondo si acabamos de recibir y auto-seleccionar un nuevo mensaje
+                        const forceScroll = newInfo.hasNew;
                         const isAtBottom = chatMessagesContainer.scrollHeight - chatMessagesContainer.scrollTop <= chatMessagesContainer.clientHeight + 50;
                         const chatData = (currentActiveLine === 1 ? currentChatsData.line1 : currentChatsData.line2).find(c => c.id === currentActiveChatId);
                         if (chatData) renderChatMessages(chatData);
-                        if (isAtBottom) chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+                        if (isAtBottom || forceScroll) chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
                     }
                 }
             } else if (!silent) {
@@ -441,6 +472,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 previewImageFull.src = '';
             } else if (!modalActiveChats.hidden) {
                 modalActiveChats.hidden = true;
+                modalActiveChats.style.display = 'none';
             }
         }
     });

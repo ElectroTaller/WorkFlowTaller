@@ -1517,13 +1517,9 @@ input[type="number"]::-webkit-inner-spin-button { display: none; }
 .chat-item:hover {
   background: var(--bg-hover);
 }
-.chat-item.active {
-  background: #f0f2f5;
-}
+.chat-item.active { background: var(--c-surface-2); border-left: 3px solid var(--c-accent); padding-left: 17px; }
 
-.chat-item-avatar {
-  width: 48px;
-  height: 48px;
+.chat-item-avatar { width: 38px; height: 38px;
   border-radius: 50%;
   background: #dfe5e7;
   display: flex;
@@ -1537,9 +1533,7 @@ input[type="number"]::-webkit-inner-spin-button { display: none; }
   flex: 1;
   overflow: hidden;
 }
-.chat-item-name {
-  font-weight: 600;
-  font-size: 1.05rem;
+.chat-item-name { font-weight: 600; font-size: 0.9rem;
   color: var(--t-primary);
   margin-bottom: 2px;
   white-space: nowrap;
@@ -1553,8 +1547,7 @@ input[type="number"]::-webkit-inner-spin-button { display: none; }
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.chat-item-time {
-  font-size: 0.75rem;
+.chat-item-time { font-size: 0.65rem;
   color: var(--t-secondary);
   align-self: flex-start;
   margin-top: 5px;
@@ -1598,4 +1591,7 @@ input[type="number"]::-webkit-inner-spin-button { display: none; }
 
 
 .chat-bubble { word-break: break-word; overflow-wrap: break-word; }
+
+
+
 

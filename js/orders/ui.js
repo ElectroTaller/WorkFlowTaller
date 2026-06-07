@@ -144,6 +144,8 @@ const configModal = {
     document.getElementById('cfg-app-id').value = cfg.appId || '';
     document.getElementById('cfg-auth-domain').value = cfg.authDomain || '';
     document.getElementById('cfg-shop-name').value = cfg.shopName || '';
+    document.getElementById('cfg-shop-phone').value = cfg.shopPhone || '';
+    document.getElementById('cfg-shop-phone-2').value = cfg.shopPhone2 || '';
     document.getElementById('modal-config').hidden = false;
 
     // Obtener la configuración actual del bot de WhatsApp local
@@ -152,8 +154,10 @@ const configModal = {
       .then(res => res.json())
       .then(data => {
         if (data.success && data.config) {
-          const chk = document.getElementById('cfg-bot-human');
-          if (chk) chk.checked = data.config.allowHumanContact;
+          const chkHuman = document.getElementById('cfg-bot-human');
+          const chkAfterHours = document.getElementById('cfg-bot-afterhours');
+          if (chkHuman) chkHuman.checked = data.config.allowHumanContact;
+          if (chkAfterHours) chkAfterHours.checked = data.config.notifyAfterHours;
         }
       })
       .catch(err => console.warn('Bot local no detectado o apagado', err));

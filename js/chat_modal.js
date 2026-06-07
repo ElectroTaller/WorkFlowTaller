@@ -25,6 +25,51 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentActiveLine = 1;
     let currentActiveChatId = null;
 
+    // --- Drag & Drop Logic ---
+    const chatDraggablePanel = document.getElementById('chat-draggable-panel');
+    const modalMainHeader = modalActiveChats.querySelector('.modal-header');
+    
+    if (modalMainHeader && chatDraggablePanel) {
+        modalMainHeader.style.cursor = 'move';
+        
+        let isDragging = false;
+        let startX, startY, initialLeft, initialTop;
+        
+        modalMainHeader.addEventListener('mousedown', (e) => {
+            if (e.target.closest('button')) return; // Ignorar el botón de cerrar
+            isDragging = true;
+            
+            const rect = chatDraggablePanel.getBoundingClientRect();
+            // Fijar posición inicial para coordenadas absolutas si aún no tiene
+            if (!chatDraggablePanel.style.left || chatDraggablePanel.style.left === '') {
+                chatDraggablePanel.style.left = rect.left + 'px';
+                chatDraggablePanel.style.top = rect.top + 'px';
+                chatDraggablePanel.style.position = 'fixed';
+                chatDraggablePanel.style.margin = '0';
+            }
+            
+            startX = e.clientX;
+            startY = e.clientY;
+            initialLeft = parseFloat(chatDraggablePanel.style.left) || 0;
+            initialTop = parseFloat(chatDraggablePanel.style.top) || 0;
+            
+            document.body.style.userSelect = 'none'; 
+        });
+        
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+            chatDraggablePanel.style.left = (initialLeft + dx) + 'px';
+            chatDraggablePanel.style.top = (initialTop + dy) + 'px';
+        });
+        
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+            document.body.style.userSelect = '';
+        });
+    }
+
     // --- Funciones de Utilidad ---
 
     function formatTime(timestamp) {
@@ -231,6 +276,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     btnActiveChats.addEventListener('click', () => {
         modalActiveChats.hidden = false;
+        modalActiveChats.style.display = 'flex';
         // Limpiar estado
         chatMessagesContainer.innerHTML = '<div style="text-align: center; margin-top: auto; margin-bottom: auto; color: #666; font-size: 0.9rem; background: rgba(255,255,255,0.7); padding: 8px 16px; border-radius: 20px; align-self: center;">Selecciona un chat</div>';
         chatHeader.innerHTML = '<div style="font-weight: 600; font-size: 1.1rem; color: var(--t-primary);">Selecciona un chat</div>';
@@ -243,6 +289,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     btnCloseChats.addEventListener('click', () => {
         modalActiveChats.hidden = true;
+        modalActiveChats.style.display = 'none';
     });
 
     lineTabs.forEach(tab => {

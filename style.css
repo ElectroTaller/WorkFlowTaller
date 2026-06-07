@@ -1596,3 +1596,6 @@ input[type="number"]::-webkit-inner-spin-button { display: none; }
 .chat-body { color: #111111 !important; font-weight: 500; }
 .chat-bubble { color: #111111 !important; }
 
+
+.chat-bubble { word-break: break-word; overflow-wrap: break-word; }
+

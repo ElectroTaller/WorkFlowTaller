@@ -25,9 +25,31 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentActiveLine = 1;
     let currentActiveChatId = null;
 
-    // --- Drag & Drop Logic ---
+    // --- Auto-Open & Inactividad ---
+    let lastSeenMessageTimestamp = 0;
+    let inactivityTimer = null;
+
+    function resetInactivityTimer() {
+        if (inactivityTimer) clearTimeout(inactivityTimer);
+        // Si la ventana está visible, iniciar temporizador de 3 min
+        if (!modalActiveChats.hidden) {
+            inactivityTimer = setTimeout(() => {
+                modalActiveChats.hidden = true;
+                modalActiveChats.style.display = 'none';
+            }, 3 * 60 * 1000); // 3 minutos
+        }
+    }
+
     const chatDraggablePanel = document.getElementById('chat-draggable-panel');
     const modalMainHeader = modalActiveChats.querySelector('.modal-header');
+
+    if (chatDraggablePanel) {
+        ['mousemove', 'click', 'keydown'].forEach(evt => {
+            chatDraggablePanel.addEventListener(evt, resetInactivityTimer);
+        });
+    }
+
+    // --- Drag & Drop Logic ---
     
     if (modalMainHeader && chatDraggablePanel) {
         modalMainHeader.style.cursor = 'move';
@@ -198,24 +220,96 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- Carga Inicial ---
+    // --- Carga Inicial y Polling ---
 
-    async function fetchActiveChats() {
-        chatsListContainer.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--t-secondary);">Cargando chats... <span class="status-dot spin"></span></div>';
+    function checkForNewMessages() {
+        let maxTimestamp = lastSeenMessageTimestamp;
+        let hasNewIncoming = false;
+        
+        const checkLine = (lineData) => {
+            if (!lineData) return;
+            lineData.forEach(chat => {
+                if (chat.messages && chat.messages.length > 0) {
+                    const lastMsg = chat.messages[chat.messages.length - 1];
+                    if (lastMsg.timestamp > maxTimestamp) {
+                        maxTimestamp = lastMsg.timestamp;
+                        if (!lastMsg.fromMe && lastMsg.timestamp > lastSeenMessageTimestamp) {
+                            hasNewIncoming = true;
+                        }
+                    }
+                }
+            });
+        };
+        
+        checkLine(currentChatsData.line1);
+        checkLine(currentChatsData.line2);
+        
+        // Inicializar la primera vez sin disparar
+        if (lastSeenMessageTimestamp === 0) {
+            lastSeenMessageTimestamp = maxTimestamp;
+            return false;
+        }
+        
+        if (hasNewIncoming) {
+            lastSeenMessageTimestamp = maxTimestamp;
+            return true;
+        }
+        
+        if (maxTimestamp > lastSeenMessageTimestamp) {
+            lastSeenMessageTimestamp = maxTimestamp;
+        }
+        return false;
+    }
+
+    async function loadChatsData(silent = false) {
+        if (!silent) {
+            chatsListContainer.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--t-secondary);">Cargando chats... <span class="status-dot spin"></span></div>';
+        }
         try {
             const response = await fetch(`${BOT_API_URL}/api/chats/active?apiKey=${API_KEY}`);
             const data = await response.json();
             
             if (data.success) {
                 currentChatsData = data.data;
-                renderChatsList();
-            } else {
+                const isNew = checkForNewMessages();
+                
+                if (isNew) {
+                    // Abrir automáticamente si estaba cerrado
+                    if (modalActiveChats.hidden) {
+                        modalActiveChats.hidden = false;
+                        modalActiveChats.style.display = 'flex';
+                    }
+                    resetInactivityTimer();
+                }
+                
+                // Actualizar interfaz si está abierto
+                if (!modalActiveChats.hidden) {
+                    renderChatsList();
+                    if (currentActiveChatId) {
+                        // Solo hacer scroll si ya estaba al final para no molestar al usuario
+                        const isAtBottom = chatMessagesContainer.scrollHeight - chatMessagesContainer.scrollTop <= chatMessagesContainer.clientHeight + 50;
+                        const chatData = (currentActiveLine === 1 ? currentChatsData.line1 : currentChatsData.line2).find(c => c.id === currentActiveChatId);
+                        if (chatData) renderChatMessages(chatData);
+                        if (isAtBottom) chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+                    }
+                }
+            } else if (!silent) {
                 chatsListContainer.innerHTML = `<div style="padding: 20px; text-align: center; color: var(--c-danger);">Error: ${data.error}</div>`;
             }
         } catch (e) {
-            chatsListContainer.innerHTML = `<div style="padding: 20px; text-align: center; color: var(--c-danger);">Error de conexión con el bot. Asegúrate que esté corriendo.</div>`;
+            if (!silent) {
+                chatsListContainer.innerHTML = `<div style="padding: 20px; text-align: center; color: var(--c-danger);">Error de conexión con el bot. Asegúrate que esté corriendo.</div>`;
+            }
             console.error(e);
         }
+    }
+
+    // Iniciar polling
+    setInterval(() => loadChatsData(true), 10000);
+
+    // Reemplazo compatible con código existente
+    async function fetchActiveChats() {
+        await loadChatsData(false);
     }
 
     // --- Enviar Mensaje ---
@@ -277,6 +371,7 @@ document.addEventListener('DOMContentLoaded', () => {
     btnActiveChats.addEventListener('click', () => {
         modalActiveChats.hidden = false;
         modalActiveChats.style.display = 'flex';
+        resetInactivityTimer();
         // Limpiar estado
         chatMessagesContainer.innerHTML = '<div style="text-align: center; margin-top: auto; margin-bottom: auto; color: #666; font-size: 0.9rem; background: rgba(255,255,255,0.7); padding: 8px 16px; border-radius: 20px; align-self: center;">Selecciona un chat</div>';
         chatHeader.innerHTML = '<div style="font-weight: 600; font-size: 1.1rem; color: var(--t-primary);">Selecciona un chat</div>';

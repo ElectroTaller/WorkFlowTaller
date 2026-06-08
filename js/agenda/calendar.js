@@ -225,7 +225,7 @@ window.agendaCalendarMixin = {
     }
 
     card.addEventListener('click', () => {
-      this.openForm(apt);
+      if (window.detailModal) window.detailModal.open(apt);
     });
 
     return card;

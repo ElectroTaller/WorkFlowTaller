@@ -194,15 +194,20 @@ const formModule = {
     if (waLineSelect) waLineSelect.value = '1';
     document.getElementById('field-device-type').value = 'ECU Automotriz';
     this.setDeviceType('ECU Automotriz');
-    document.getElementById('fields-vehicle').style.display = 'none';
-    document.getElementById('fields-ac').style.display = 'none';
-    document.querySelectorAll('.device-type-btn').forEach(b => b.classList.remove('active'));
-    document.querySelector('[data-type="ECU Automotriz"]')?.classList.add('active');
-    // Mostrar campos de vehículo por defecto para ECU
-    document.getElementById('fields-vehicle').style.display = 'grid';
-    // Limpiar checkboxes de componentes
-    ['chk-tarjeta-evap', 'chk-tarjeta-cond', 'chk-sensor-evap', 'chk-sensor-cond', 'chk-ventilador', 'chk-display', 'chk-control']
-      .forEach(id => { const el = document.getElementById(id); if (el) el.checked = false; });
+
+    document.getElementById('section-device').style.display = 'block';
+    const cHead = document.getElementById('section-components-header');
+    if(cHead) cHead.style.display = 'flex';
+    const cBody = document.getElementById('section-components-body');
+    if(cBody) cBody.style.display = 'block';
+    
+    const lblText = document.getElementById('lbl-fault-text');
+    if(lblText) lblText.textContent = 'Falla Reportada por el Cliente';
+    const reqFault = document.getElementById('req-fault');
+    if(reqFault) reqFault.style.display = 'inline';
+    const fFault = document.getElementById('field-fault');
+    if(fFault) fFault.required = true;
+
     // Setear fecha de hoy
     const dueDate = document.getElementById('field-due-date');
     if (dueDate) dueDate.value = '';
@@ -269,6 +274,8 @@ const formModule = {
       });
     }
   },
+
+
 
   setDeviceType(type) {
     const needsVehicle = ['ECU Automotriz', 'Tablero Electrónico'].includes(type);
@@ -354,6 +361,246 @@ const formModule = {
     if (!data.reportedFault) { toast.show('Campo requerido', 'Describe la falla reportada.', 'warning'); return false; }
     return true;
   },
+};
+
+const servicioFormModule = {
+  currentId: null,
+
+  open(order = null) {
+    this.currentId = order?.id || null;
+    const modal = document.getElementById('modal-servicio');
+    const title = document.getElementById('modal-servicio-title');
+    if (title) title.textContent = order ? 'Editar Servicio a Domicilio / Visita' : 'Nuevo Servicio a Domicilio / Visita';
+
+    this.resetForm();
+    if (order) this.populate(order);
+    
+    // Default to current date if new
+    if (!order) {
+      const today = new Date();
+      document.getElementById('srv-field-date').value = today.toISOString().split('T')[0];
+    }
+    
+    this.updateBalance();
+
+    if (modal) modal.hidden = false;
+    document.getElementById('srv-field-client-name')?.focus();
+  },
+
+  close() {
+    const modal = document.getElementById('modal-servicio');
+    if (modal) modal.hidden = true;
+    this.currentId = null;
+  },
+
+  resetForm() {
+    document.getElementById('servicio-form')?.reset();
+    document.getElementById('srv-field-order-id').value = '';
+    
+    const statusSelect = document.getElementById('srv-field-status');
+    if (statusSelect) statusSelect.value = 'Programado';
+    
+    const waLineSelect = document.getElementById('srv-field-wa-line');
+    if (waLineSelect) waLineSelect.value = '1';
+    
+    document.getElementById('srv-field-service-type').value = 'air';
+    
+    // Reset service type UI
+    document.querySelectorAll('#modal-servicio .device-type-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById('srv-svc-air')?.classList.add('active');
+    
+    document.getElementById('srv-fields-air').style.display = 'grid';
+    document.getElementById('srv-fields-auto').style.display = 'none';
+    document.getElementById('srv-fields-general').style.display = 'none';
+  },
+
+  populate(order) {
+    document.getElementById('srv-field-order-id').value = order.id || '';
+    document.getElementById('srv-field-client-name').value = order.clientName || '';
+    document.getElementById('srv-field-client-phone').value = order.clientPhone || '';
+    document.getElementById('srv-field-client-cedula').value = order.clientCedula || '';
+    document.getElementById('srv-field-client-ruc').value = order.clientRuc || '';
+    
+    document.getElementById('srv-field-status').value = order.status || 'Programado';
+    document.getElementById('srv-field-wa-line').value = order.waLine || '1';
+    
+    document.getElementById('srv-field-date').value = order.scheduledDate || '';
+    document.getElementById('srv-field-time').value = order.scheduledTime || '';
+    document.getElementById('srv-field-duration').value = order.duration || '60';
+    document.getElementById('srv-field-tech').value = order.techId || '';
+    
+    document.getElementById('srv-field-building').value = order.fsPh || '';
+    document.getElementById('srv-field-apt').value = order.fsAddress || '';
+    document.getElementById('srv-field-resident-name').value = order.residentName || '';
+    document.getElementById('srv-field-resident-phone').value = order.residentPhone || '';
+    document.getElementById('srv-field-contact-name').value = order.adminName || '';
+    document.getElementById('srv-field-contact-phone').value = order.adminPhone || '';
+    
+    document.getElementById('srv-field-budget').value = order.budget || '';
+    document.getElementById('srv-field-down-payment').value = order.downPayment || '';
+    
+    const serviceType = order.fsServiceType || 'air';
+    document.getElementById('srv-field-service-type').value = serviceType;
+    
+    // Reset service type UI
+    document.querySelectorAll('#modal-servicio .device-type-btn').forEach(btn => btn.classList.remove('active'));
+    const btn = document.querySelector(`#modal-servicio .device-type-btn[data-service="${serviceType}"]`);
+    if (btn) btn.classList.add('active');
+    
+    document.getElementById('srv-fields-air').style.display = serviceType === 'air' ? 'grid' : 'none';
+    document.getElementById('srv-fields-auto').style.display = serviceType === 'automotive' ? 'grid' : 'none';
+    document.getElementById('srv-fields-general').style.display = serviceType === 'general' ? 'grid' : 'none';
+    
+    if (serviceType === 'air' && order.acData) {
+      document.getElementById('srv-field-ac-brand').value = order.acData.brand || '';
+      document.getElementById('srv-field-ac-model').value = order.acData.model || '';
+      document.getElementById('srv-field-ac-type').value = order.acData.type || '';
+      document.getElementById('srv-field-ac-fault').value = order.reportedFault || '';
+      document.getElementById('srv-field-ac-notes').value = order.technicalNotes || '';
+      
+      const workTypes = order.acWorkTypes || [];
+      document.getElementById('srv-ac-chk-mantenimiento').checked = workTypes.includes('mantenimiento');
+      document.getElementById('srv-ac-chk-diagnostico').checked = workTypes.includes('diagnostico_reparacion');
+      document.getElementById('srv-ac-chk-instalacion').checked = workTypes.includes('instalacion');
+    } else if (serviceType === 'automotive') {
+      document.getElementById('srv-field-auto-fault').value = order.reportedFault || '';
+      document.getElementById('srv-field-auto-notes').value = order.technicalNotes || '';
+    } else if (serviceType === 'general') {
+      document.getElementById('srv-field-gen-notes').value = order.technicalNotes || '';
+      const workTypes = order.genWorkTypes || [];
+      document.getElementById('srv-gen-chk-inst-interruptores').checked = workTypes.includes('inst_interruptores');
+      document.getElementById('srv-gen-chk-inst-cerradura').checked = workTypes.includes('inst_cerradura');
+      document.getElementById('srv-gen-chk-rev-cerradura').checked = workTypes.includes('rev_cerradura');
+      document.getElementById('srv-gen-chk-rev-interruptores').checked = workTypes.includes('rev_interruptores');
+      document.getElementById('srv-gen-chk-diag-electrico').checked = workTypes.includes('diag_electrico');
+      document.getElementById('srv-gen-chk-prog-entrega').checked = workTypes.includes('prog_entrega');
+    }
+  },
+
+  updateBalance() {
+    const budget = Number(document.getElementById('srv-field-budget')?.value) || 0;
+    const down = Number(document.getElementById('srv-field-down-payment')?.value) || 0;
+    const balance = document.getElementById('balance-display');
+    if (balance) balance.textContent = utils.formatCurrency(budget - down);
+  },
+
+  collectData() {
+    const serviceType = document.getElementById('srv-field-service-type').value;
+
+    const data = {
+      id: this.currentId || null,
+      clientName: document.getElementById('srv-field-client-name').value.trim(),
+      clientPhone: document.getElementById('srv-field-client-phone').value.trim(),
+      clientCedula: document.getElementById('srv-field-client-cedula').value.trim(),
+      clientRuc: document.getElementById('srv-field-client-ruc').value.trim(),
+      clientPin: clientsModule.generateUniquePin(document.getElementById('srv-field-client-ruc').value.trim() || document.getElementById('srv-field-client-cedula').value.trim()),
+      waLine: parseInt(document.getElementById('srv-field-wa-line')?.value) || 1,
+      status: document.getElementById('srv-field-status').value,
+      orderMode: 'domicilio',
+      
+      scheduledDate: document.getElementById('srv-field-date').value,
+      scheduledTime: document.getElementById('srv-field-time').value,
+      duration: document.getElementById('srv-field-duration').value,
+      techId: document.getElementById('srv-field-tech').value,
+      dueDate: document.getElementById('srv-field-date').value, // Fallback for sorting/agenda compatibility
+      
+      fsPh: document.getElementById('srv-field-building').value.trim(),
+      fsAddress: document.getElementById('srv-field-apt').value.trim(),
+      residentName: document.getElementById('srv-field-resident-name').value.trim(),
+      residentPhone: document.getElementById('srv-field-resident-phone').value.trim(),
+      adminName: document.getElementById('srv-field-contact-name').value.trim(),
+      adminPhone: document.getElementById('srv-field-contact-phone').value.trim(),
+      
+      budget: parseFloat(document.getElementById('srv-field-budget').value) || 0,
+      downPayment: parseFloat(document.getElementById('srv-field-down-payment').value) || 0,
+      
+      fsServiceType: serviceType,
+      remindDayBefore: document.getElementById('srv-field-remind-day-before')?.checked || false,
+      remindHourBefore: document.getElementById('srv-field-remind-hour-before')?.checked || false
+    };
+
+    if (serviceType === 'air') {
+      const acWorkTypes = [];
+      if (document.getElementById('srv-ac-chk-mantenimiento')?.checked) acWorkTypes.push('mantenimiento');
+      if (document.getElementById('srv-ac-chk-diagnostico')?.checked) acWorkTypes.push('diagnostico_reparacion');
+      if (document.getElementById('srv-ac-chk-instalacion')?.checked) acWorkTypes.push('instalacion');
+      
+      data.acWorkTypes = acWorkTypes;
+      data.acData = {
+        brand: document.getElementById('srv-field-ac-brand')?.value || '',
+        model: document.getElementById('srv-field-ac-model')?.value.trim() || '',
+        type: document.getElementById('srv-field-ac-type')?.value || ''
+      };
+      data.reportedFault = document.getElementById('srv-field-ac-fault')?.value.trim() || '';
+      data.technicalNotes = document.getElementById('srv-field-ac-notes')?.value.trim() || '';
+      
+    } else if (serviceType === 'automotive') {
+      data.reportedFault = document.getElementById('srv-field-auto-fault')?.value.trim() || '';
+      data.technicalNotes = document.getElementById('srv-field-auto-notes')?.value.trim() || '';
+      
+    } else if (serviceType === 'general') {
+      const genWorkTypes = [];
+      if (document.getElementById('srv-gen-chk-inst-interruptores')?.checked) genWorkTypes.push('inst_interruptores');
+      if (document.getElementById('srv-gen-chk-inst-cerradura')?.checked) genWorkTypes.push('inst_cerradura');
+      if (document.getElementById('srv-gen-chk-rev-cerradura')?.checked) genWorkTypes.push('rev_cerradura');
+      if (document.getElementById('srv-gen-chk-rev-interruptores')?.checked) genWorkTypes.push('rev_interruptores');
+      if (document.getElementById('srv-gen-chk-diag-electrico')?.checked) genWorkTypes.push('diag_electrico');
+      if (document.getElementById('srv-gen-chk-prog-entrega')?.checked) genWorkTypes.push('prog_entrega');
+      
+      data.genWorkTypes = genWorkTypes;
+      data.technicalNotes = document.getElementById('srv-field-gen-notes')?.value.trim() || '';
+    }
+
+    // Compatibilidad con Kanban de la versión original
+    let descType = serviceType === 'air' ? 'A/C' : (serviceType === 'automotive' ? 'Vehículo' : 'Servicio General');
+    let faultDesc = data.reportedFault || data.technicalNotes || 'Mantenimiento';
+    
+    data.deviceDesc = `${descType} - ${data.fsPh}`;
+    data.fsService = faultDesc.substring(0, 50);
+
+    return data;
+  },
+
+  async save() {
+    const data = this.collectData();
+    if (!data.clientName || !data.clientPhone || !data.scheduledDate || !data.scheduledTime || !data.techId || !data.fsPh) {
+      if (window.toast) toast.show('Error', 'Por favor complete todos los campos obligatorios.', 'error');
+      else alert('Por favor complete todos los campos obligatorios.');
+      return;
+    }
+    
+    try {
+      const btn = document.getElementById('btn-servicio-save');
+      if (btn) btn.disabled = true;
+      
+      if (data.id) {
+        await firebaseModule.db.collection('orders').doc(data.id).update({
+          ...data,
+          updatedAt: firebaseModule.firebase.firestore.FieldValue.serverTimestamp()
+        });
+      } else {
+        const docRef = await firebaseModule.db.collection('orders').add({
+          ...data,
+          createdAt: firebaseModule.firebase.firestore.FieldValue.serverTimestamp(),
+          updatedAt: firebaseModule.firebase.firestore.FieldValue.serverTimestamp()
+        });
+        data.id = docRef.id;
+      }
+
+      await clientsModule.saveClientFromOrder(data);
+      
+      this.close();
+      if (window.toast) toast.show('Éxito', 'Servicio guardado exitosamente', 'success');
+      
+    } catch (e) {
+      console.error(e);
+      if (window.toast) toast.show('Error', 'No se pudo guardar el servicio.', 'error');
+      else alert('Error al guardar: ' + e.message);
+    } finally {
+      const btn = document.getElementById('btn-servicio-save');
+      if (btn) btn.disabled = false;
+    }
+  }
 };
 
 /* �"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?�"?
@@ -830,22 +1077,41 @@ const eventController = {
   init() {
     /* === Botón Nueva Orden === */
     document.getElementById('btn-new-order')?.addEventListener('click', () => formModule.open());
+    document.getElementById('btn-new-servicio')?.addEventListener('click', () => servicioFormModule.open());
 
     /* === Botón Configuración === */
     document.getElementById('btn-config')?.addEventListener('click', () => configModal.open());
+    document.getElementById('btn-view-taller-kanban')?.addEventListener('click', () => {
+      document.getElementById('kanban-board-taller').style.display = 'grid';
+      document.getElementById('kanban-board-servicio').style.display = 'none';
+      document.getElementById('btn-view-taller-kanban').className = 'btn btn-primary';
+      document.getElementById('btn-view-servicio-kanban').className = 'btn btn-ghost';
+      document.getElementById('btn-view-servicio-kanban').style.border = '1px solid var(--c-border-light)';
+    });
+    document.getElementById('btn-view-servicio-kanban')?.addEventListener('click', () => {
+      document.getElementById('kanban-board-taller').style.display = 'none';
+      document.getElementById('kanban-board-servicio').style.display = 'grid';
+      document.getElementById('btn-view-servicio-kanban').className = 'btn btn-primary';
+      document.getElementById('btn-view-taller-kanban').className = 'btn btn-ghost';
+      document.getElementById('btn-view-taller-kanban').style.border = '1px solid var(--c-border-light)';
+    });
+
 
     /* === Cerrar Modales === */
     document.getElementById('modal-order-close')?.addEventListener('click', () => formModule.close());
+    document.getElementById('modal-servicio-close')?.addEventListener('click', () => servicioFormModule.close());
+    document.getElementById('btn-servicio-cancel')?.addEventListener('click', () => servicioFormModule.close());
     document.getElementById('btn-order-cancel')?.addEventListener('click', () => formModule.close());
     document.getElementById('modal-detail-close')?.addEventListener('click', () => detailModal.close());
     document.getElementById('modal-config-close')?.addEventListener('click', () => configModal.close());
 
     /* Cerrar modal al click en backdrop */
-    ['modal-order', 'modal-detail', 'modal-config'].forEach(id => {
+    ['modal-order', 'modal-servicio', 'modal-detail', 'modal-config'].forEach(id => {
       document.getElementById(id)?.addEventListener('click', e => {
         if (e.target === e.currentTarget) {
           e.currentTarget.hidden = true;
           if (id === 'modal-order') formModule.close();
+          if (id === 'modal-servicio') servicioFormModule.close();
           if (id === 'modal-detail') detailModal.close();
         }
       });
@@ -871,12 +1137,36 @@ const eventController = {
       }
     });
 
-    /* === Selector de Tipo de Dispositivo === */
-    document.querySelectorAll('.device-type-btn').forEach(btn => {
+    /* === Formulario de Servicio a Domicilio / Visita === */
+    document.getElementById('servicio-form')?.addEventListener('submit', async e => {
+      e.preventDefault();
+      await servicioFormModule.save();
+    });
+
+    /* === Selector de Tipo de Dispositivo (Taller) === */
+    document.querySelectorAll('#modal-order .device-type-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        document.querySelectorAll('.device-type-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('#modal-order .device-type-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         formModule.setDeviceType(btn.dataset.type);
+      });
+    });
+
+    /* === Selector de Tipo de Dispositivo (Servicio a Domicilio) === */
+    document.querySelectorAll('#modal-servicio .device-type-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#modal-servicio .device-type-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const type = btn.dataset.service;
+        document.getElementById('srv-field-service-type').value = type;
+        
+        const fieldsAir = document.getElementById('srv-fields-air');
+        const fieldsAuto = document.getElementById('srv-fields-auto') || document.getElementById('srv-fields-auto');
+        const fieldsGen = document.getElementById('srv-fields-general');
+        
+        if (fieldsAir) fieldsAir.style.display = type === 'air' ? 'grid' : 'none';
+        if (fieldsAuto) fieldsAuto.style.display = type === 'automotive' ? 'grid' : 'none';
+        if (fieldsGen) fieldsGen.style.display = type === 'general' ? 'grid' : 'none';
       });
     });
 
@@ -947,7 +1237,7 @@ const eventController = {
     });
 
     /* === Click en tarjetas Kanban (delegado) === */
-    document.getElementById('kanban-board')?.addEventListener('click', e => {
+    document.getElementById('kanban-wrapper')?.addEventListener('click', e => {
       const btn = e.target.closest('[data-action]');
       if (!btn) return;
       const id = btn.dataset.id;
@@ -967,7 +1257,7 @@ const eventController = {
     });
 
     /* === Cambio rápido de estado desde la tarjeta (para móviles/PC) === */
-    document.getElementById('kanban-board')?.addEventListener('change', e => {
+    document.getElementById('kanban-wrapper')?.addEventListener('change', e => {
       if (e.target.dataset.action === 'quick-status') {
         const id = e.target.dataset.id;
         const newStatus = e.target.value;
@@ -1479,9 +1769,9 @@ const clientsUIModule = {
   _acTimer: null,
   _acFocused: -1,
 
-  initAutocomplete() {
-    const input = document.getElementById('field-client-name');
-    const dropdown = document.getElementById('client-autocomplete');
+  initAutocomplete(prefix = '') {
+    const input = document.getElementById(prefix ? `${prefix}-field-client-name` : 'field-client-name');
+    const dropdown = document.getElementById(prefix ? `${prefix}-client-autocomplete` : 'client-autocomplete');
     if (!input || !dropdown) return;
 
     const hide = () => { dropdown.hidden = true; this._acFocused = -1; };
@@ -1489,7 +1779,7 @@ const clientsUIModule = {
 
     input.addEventListener('input', () => {
       clearTimeout(this._acTimer);
-      this._acTimer = setTimeout(() => this._renderAC(input.value), 180);
+      this._acTimer = setTimeout(() => this._renderAC(input.value, prefix), 180);
     });
 
     input.addEventListener('keydown', e => {
@@ -1516,9 +1806,9 @@ const clientsUIModule = {
     });
   },
 
-  _renderAC(query) {
-    const dropdown = document.getElementById('client-autocomplete');
-    const input = document.getElementById('field-client-name');
+  _renderAC(query, prefix = '') {
+    const dropdown = document.getElementById(prefix ? `${prefix}-client-autocomplete` : 'client-autocomplete');
+    const input = document.getElementById(prefix ? `${prefix}-field-client-name` : 'field-client-name');
     if (!dropdown || !input) return;
     this._acFocused = -1;
 
@@ -1569,13 +1859,17 @@ const clientsUIModule = {
       el.addEventListener('click', () => {
         const client = clientsModule.clients.get(el.dataset.id);
         if (!client) return;
-        document.getElementById('field-client-name').value = client.name;
-        document.getElementById('field-client-phone').value = client.phone || '';
-        document.getElementById('field-client-cedula').value = client.clientCedula || '';
-        document.getElementById('field-client-ruc').value = client.clientRuc || '';
-        document.getElementById('field-client-pin').value = client.clientPin || '';
+        document.getElementById(prefix ? `${prefix}-field-client-name` : 'field-client-name').value = client.name;
+        document.getElementById(prefix ? `${prefix}-field-client-phone` : 'field-client-phone').value = client.phone || '';
+        document.getElementById(prefix ? `${prefix}-field-client-cedula` : 'field-client-cedula').value = client.clientCedula || '';
+        document.getElementById(prefix ? `${prefix}-field-client-ruc` : 'field-client-ruc').value = client.clientRuc || '';
+        document.getElementById(prefix ? `${prefix}-field-client-pin` : 'field-client-pin').value = client.clientPin || '';
         dropdown.hidden = true;
-        formModule.updateBalance?.();
+        if (prefix === 'srv') {
+            if (typeof servicioFormModule !== 'undefined') servicioFormModule.updateBalance?.();
+        } else {
+            formModule.updateBalance?.();
+        }
       });
     });
 
@@ -1620,6 +1914,7 @@ const clientsUIModule = {
 
     // Autocomplete en formulario de orden
     this.initAutocomplete();
+    this.initAutocomplete('srv');
   },
 };
 

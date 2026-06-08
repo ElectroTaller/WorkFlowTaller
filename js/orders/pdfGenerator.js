@@ -108,8 +108,14 @@ const pdfModule = {
       // Redraw box to be bigger? No, drawBox already drew it.
     }
 
-    drawBox(108, y, 88, 28, 'Dispositivo'); // Make Dispositivo same max height
-    writeField(111, y + 11, 'Tipo', order.deviceType);
+    if (order.orderMode === 'domicilio') {
+      drawBox(108, y, 88, 28, 'Servicio a Domicilio');
+      writeField(111, y + 11, 'Servicio', order.fsService || '-');
+      writeField(111, y + 16, 'Lugar', [order.fsLocation, order.fsPh].filter(Boolean).join(' - ') || '-');
+    } else {
+      drawBox(108, y, 88, 28, 'Dispositivo'); // Make Dispositivo same max height
+      writeField(111, y + 11, 'Tipo', order.deviceType);
+    }
 
     // Status Badge
     doc.setFontSize(7); doc.setFont('helvetica', 'bold'); doc.setTextColor(255, 255, 255);
@@ -127,7 +133,11 @@ const pdfModule = {
     y += 24;
 
     // Fila 2: Detalles tecnicos
-    if ((veh && (veh.brand || veh.vin || veh.dtcCode)) || (ac && (ac.brand || ac.model))) {
+    if (order.orderMode === 'domicilio') {
+      drawBox(14, y, 182, 14, 'Detalles de Llegada');
+      writeField(17, y + 11, 'Direccion', order.fsAddress || '-');
+      y += 16;
+    } else if ((veh && (veh.brand || veh.vin || veh.dtcCode)) || (ac && (ac.brand || ac.model))) {
       var acBoxH = 14;
       if (ac && ac.components) {
         var compLabelsAll = { tarjetaEvap: 'Tarj.Evap.', tarjetaCond: 'Tarj.Cond.', sensorEvap: 'Sensor Evap.', sensorCond: 'Sensor Cond.', ventilador: 'Ventilador', display: 'Display' };

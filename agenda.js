@@ -2,7 +2,7 @@
 const agendaModule = {
   ...window.agendaCalendarMixin,
   ...window.agendaModalsMixin,
-  dbCollection: 'appointments',
+  dbCollection: 'orders',
   appointments: [],
   currentWeekStart: new Date(),
   technicians: [],
@@ -60,7 +60,7 @@ const agendaModule = {
 
     // New Appointment
     document.getElementById('btn-new-apt')?.addEventListener('click', () => {
-      this.openForm();
+      if (window.servicioFormModule) window.servicioFormModule.open();
     });
   },
 
@@ -89,8 +89,10 @@ const agendaModule = {
     if (this.unsubscribe) this.unsubscribe();
 
     this.unsubscribe = firebaseModule.db.collection(this.dbCollection)
+      .where('orderMode', '==', 'domicilio')
       .onSnapshot(snapshot => {
-        this.appointments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        this.appointments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+                                         .filter(doc => doc.dueDate);
         this.renderCalendar();
       }, err => console.error('Error agendas:', err));
   },

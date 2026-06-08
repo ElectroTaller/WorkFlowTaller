@@ -168,7 +168,8 @@ const configModal = {
 window.configModal = configModal;
 
 const kanban = {
-  COLUMNS: ['Nuevo Ingreso', 'En Reparación', 'Esperando Piezas', 'Listo para Entrega', 'Entregado'],
+  COLUMNS_TALLER: ['Nuevo Ingreso', 'En Reparación', 'Esperando Piezas', 'Listo para Entrega', 'Entregado', 'Finalizado'],
+  COLUMNS_SRV: ['Programado', 'En Camino', 'En Sitio', 'Finalizado'],
   searchQuery: '',
   dragOrderId: null,
 
@@ -181,49 +182,76 @@ const kanban = {
       : orders;
 
     // Limpiar columnas
-    this.COLUMNS.forEach(status => {
-      const container = document.getElementById(`cards-${this.statusId(status)}`);
+    this.COLUMNS_TALLER.forEach(status => {
+      const container = document.getElementById(`cards-${this.statusId(status, false)}`);
+      if (container) container.innerHTML = '';
+    });
+    this.COLUMNS_SRV.forEach(status => {
+      const container = document.getElementById(`cards-${this.statusId(status, true)}`);
       if (container) container.innerHTML = '';
     });
 
     const counts = {};
-    this.COLUMNS.forEach(s => counts[s] = 0);
+    const countsSrv = {};
+    this.COLUMNS_TALLER.forEach(s => counts[s] = 0);
+    this.COLUMNS_SRV.forEach(s => countsSrv[s] = 0);
 
-    // Separar órdenes activas y entregadas
-    const active = filtered;
-    const grouping = {};
-    this.COLUMNS.forEach(s => grouping[s] = []);
-    active.forEach(o => {
-      const s = o.status || 'Nuevo Ingreso';
-      if (grouping[s]) grouping[s].push(o);
-      else grouping['Nuevo Ingreso'].push(o);
+    const groupingTaller = {};
+    const groupingSrv = {};
+    this.COLUMNS_TALLER.forEach(s => groupingTaller[s] = []);
+    this.COLUMNS_SRV.forEach(s => groupingSrv[s] = []);
+
+    filtered.forEach(o => {
+      const isSrv = o.orderMode === 'domicilio';
+      if (isSrv) {
+        const s = o.status || 'Programado';
+        if (groupingSrv[s]) groupingSrv[s].push(o);
+        else groupingSrv['Programado'].push(o);
+      } else {
+        const s = o.status || 'Nuevo Ingreso';
+        if (groupingTaller[s]) groupingTaller[s].push(o);
+        else groupingTaller['Nuevo Ingreso'].push(o);
+      }
     });
 
-    this.COLUMNS.forEach(status => {
-      const container = document.getElementById(`cards-${this.statusId(status)}`);
+    this.COLUMNS_TALLER.forEach(status => {
+      const container = document.getElementById(`cards-${this.statusId(status, false)}`);
       if (!container) return;
-      const group = grouping[status] || [];
+      const group = groupingTaller[status] || [];
       counts[status] = group.length;
-
-      group.forEach(order => {
-        const card = this.buildCard(order);
-        container.appendChild(card);
-      });
+      group.forEach(order => container.appendChild(this.buildCard(order)));
+    });
+    this.COLUMNS_SRV.forEach(status => {
+      const container = document.getElementById(`cards-${this.statusId(status, true)}`);
+      if (!container) return;
+      const group = groupingSrv[status] || [];
+      countsSrv[status] = group.length;
+      group.forEach(order => container.appendChild(this.buildCard(order)));
     });
 
     // Actualizar contadores
-    this.COLUMNS.forEach(status => {
-      const el = document.getElementById(`count-${this.statusId(status)}`);
+    this.COLUMNS_TALLER.forEach(status => {
+      const el = document.getElementById(`count-${this.statusId(status, false)}`);
       if (el) {
         const prev = parseInt(el.textContent, 10) || 0;
         el.textContent = counts[status];
         if (prev !== counts[status]) { el.style.animation = 'none'; el.offsetHeight; el.style.animation = 'counterPop .4s var(--ease-bounce)'; }
       }
     });
+    this.COLUMNS_SRV.forEach(status => {
+      const el = document.getElementById(`count-${this.statusId(status, true)}`);
+      if (el) {
+        const prev = parseInt(el.textContent, 10) || 0;
+        el.textContent = countsSrv[status];
+        if (prev !== countsSrv[status]) { el.style.animation = 'none'; el.offsetHeight; el.style.animation = 'counterPop .4s var(--ease-bounce)'; }
+      }
+    });
 
     // Actualizar KPIs
     this.updateKPIs(orders);
   },
+
+  
 
   buildCard(order) {
     const daysSinceUpdate = utils.daysSince(order.updatedAt);
@@ -253,7 +281,17 @@ const kanban = {
         <span class="card-device-badge ${badgeClass}">${utils.escape(order.deviceType || 'Otro')}</span>
       </div>
       ${order.reportedFault ? `<p class="card-fault">${utils.escape(order.reportedFault)}</p>` : ''}
-      ${hasVehicle ? `
+      ${order.orderMode === 'domicilio' ? `
+        <div class="card-vehicle" style="color:var(--c-accent)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+          <span>${utils.escape(order.fsService || 'Servicio a Domicilio')}</span>
+        </div>
+        <div class="card-vehicle" style="margin-top:2px; font-size:11px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+          <span>${utils.escape([order.fsLocation, order.fsPh, order.fsAddress].filter(Boolean).join(', '))}</span>
+        </div>
+      ` : ''}
+      ${hasVehicle && order.orderMode !== 'domicilio' ? `
         <div class="card-vehicle">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/><rect x="9" y="11" width="14" height="10" rx="2"/><circle cx="12" cy="20" r="1"/><circle cx="20" cy="20" r="1"/></svg>
           <span>${utils.escape([order.vehicleData?.brand, order.vehicleData?.model, order.vehicleData?.year].filter(Boolean).join(' '))}</span>
@@ -283,8 +321,7 @@ const kanban = {
       </div>
       <div class="card-status-quick">
         <select class="form-input form-select" data-action="quick-status" data-id="${utils.escape(order.id)}">
-          ${kanban.COLUMNS.map(c => `<option value="${c}" ${c === (order.status || 'Nuevo Ingreso') ? 'selected' : ''}>${c}</option>`).join('')}
-          <option value="Entregado">�o" Marcar como Entregado</option>
+          ${(order.orderMode === 'domicilio' ? kanban.COLUMNS_SRV : kanban.COLUMNS_TALLER).map(c => `<option value="${c}" ${c === (order.status || (order.orderMode === 'domicilio' ? 'Programado' : 'Nuevo Ingreso')) ? 'selected' : ''}>${c}</option>`).join('')}
         </select>
       </div>
     `;
@@ -332,14 +369,14 @@ const kanban = {
   },
 
   updateKPIs(orders) {
-    const active = orders.filter(o => o.status !== 'Entregado' && o.status !== 'Listo para Entrega');
-    const ready = orders.filter(o => o.status === 'Listo para Entrega');
+    const active = orders.filter(o => o.status !== 'Entregado' && o.status !== 'Listo para Entrega' && o.status !== 'Finalizado');
+    const ready = orders.filter(o => o.status === 'Listo para Entrega' || o.status === 'Finalizado');
     const overdue = orders.filter(o => {
       const days = utils.daysSince(o.updatedAt);
-      return o.status !== 'Entregado' && (days >= 3 || (o.dueDate && new Date(o.dueDate) < new Date()));
+      return o.status !== 'Entregado' && o.status !== 'Finalizado' && (days >= 3 || (o.dueDate && new Date(o.dueDate) < new Date()));
     });
     const revenue = orders
-      .filter(o => o.status !== 'Entregado')
+      .filter(o => o.status !== 'Entregado' && o.status !== 'Finalizado')
       .reduce((sum, o) => sum + Math.max(0, (Number(o.budget) || 0) - (Number(o.downPayment) || 0)), 0);
 
     this.setKPI('kpi-val-total', active.length);
@@ -353,13 +390,23 @@ const kanban = {
     if (el && el.textContent !== String(value)) el.textContent = value;
   },
 
-  statusId(status) {
+  statusId(status, isSrv = false) {
+    if (isSrv) {
+      const map = {
+        'Programado': 'srv-programado',
+        'En Camino': 'srv-camino',
+        'En Sitio': 'srv-sitio',
+        'Finalizado': 'srv-finalizado',
+      };
+      return map[status] || 'srv-programado';
+    }
     const map = {
       'Nuevo Ingreso': 'nuevo',
       'En Reparación': 'reparacion',
       'Esperando Piezas': 'piezas',
       'Listo para Entrega': 'listo',
       'Entregado': 'entregado',
+      'Finalizado': 'finalizado',
     };
     return map[status] || 'nuevo';
   },

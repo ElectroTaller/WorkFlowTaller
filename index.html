@@ -103,12 +103,19 @@
         </svg>
         <span>Chats Activos</span>
       </button>
-      <button class="btn btn-primary" id="btn-new-order" aria-label="Nueva orden de trabajo">
+      <button class="btn btn-primary" id="btn-new-order" aria-label="Nueva orden de taller" style="background:var(--c-accent); color:white;">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
           <line x1="12" y1="5" x2="12" y2="19" />
           <line x1="5" y1="12" x2="19" y2="12" />
         </svg>
         <span>Nueva Orden</span>
+      </button>
+      <button class="btn btn-primary" id="btn-new-servicio" aria-label="Nuevo servicio a domicilio" style="background:var(--c-accent); color:white;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+          <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+        <span>Nuevo Domicilio / Visita</span>
       </button>
     </div>
   </header>
@@ -172,8 +179,14 @@
   <!-- ═══════════════════════════════════════════════
        KANBAN BOARD
   ═══════════════════════════════════════════════ -->
-  <main class="kanban-wrapper" id="kanban-wrapper" aria-label="Tablero Kanban de órdenes">
-    <div class="kanban-board" id="kanban-board">
+  <main class="kanban-wrapper" id="kanban-wrapper" aria-label="Tableros Kanban">
+    <div style="display:flex; gap:12px; margin-bottom: 16px; padding: 0 8px;">
+      <button class="btn btn-primary" id="btn-view-taller-kanban" style="padding: 8px 16px; border-radius: 8px;">🏢 Tablero Taller</button>
+      <button class="btn btn-ghost" id="btn-view-servicio-kanban" style="padding: 8px 16px; border-radius: 8px; border: 1px solid var(--c-border-light);">🏠 Servicios a Domicilio</button>
+    </div>
+    
+    <!-- TABLERO TALLER -->
+    <div class="kanban-board" id="kanban-board-taller">
 
       <!-- Columna: Nuevo Ingreso -->
       <section class="kanban-column" id="col-nuevo" data-status="Nuevo Ingreso" aria-label="Columna Nuevo Ingreso">
@@ -248,7 +261,80 @@
         </div>
       </section>
 
-    </div>
+      <!-- Columna: Finalizado -->
+      <section class="kanban-column" id="col-finalizado" data-status="Finalizado" aria-label="Columna Finalizado">
+        <div class="column-header">
+          <div class="column-header-left">
+            <span class="column-dot" style="background:hsl(210,10%,30%)"></span>
+            <h2 class="column-title">Finalizado</h2>
+          </div>
+          <span class="column-count" id="count-finalizado">0</span>
+        </div>
+        <div class="column-cards" id="cards-finalizado" data-status="Finalizado" ondragover="event.preventDefault()"
+          ondrop="app.kanban.onDrop(event)">
+        </div>
+      </section>
+    </div> <!-- Fin kanban-board-taller -->
+
+    <!-- TABLERO SERVICIOS A DOMICILIO -->
+    <div class="kanban-board" id="kanban-board-servicio" style="display: none;">
+      <!-- Columna: Programado -->
+      <section class="kanban-column" id="col-srv-programado" data-status="Programado" aria-label="Columna Programado">
+        <div class="column-header">
+          <div class="column-header-left">
+            <span class="column-dot" style="background:hsl(200,80%,60%)"></span>
+            <h2 class="column-title">Programado</h2>
+          </div>
+          <span class="column-count" id="count-srv-programado">0</span>
+        </div>
+        <div class="column-cards" id="cards-srv-programado" data-status="Programado" ondragover="event.preventDefault()"
+          ondrop="app.kanban.onDrop(event)">
+        </div>
+      </section>
+
+      <!-- Columna: En Camino -->
+      <section class="kanban-column" id="col-srv-camino" data-status="En Camino" aria-label="Columna En Camino">
+        <div class="column-header">
+          <div class="column-header-left">
+            <span class="column-dot" style="background:hsl(40,100%,50%)"></span>
+            <h2 class="column-title">En Camino</h2>
+          </div>
+          <span class="column-count" id="count-srv-camino">0</span>
+        </div>
+        <div class="column-cards" id="cards-srv-camino" data-status="En Camino" ondragover="event.preventDefault()"
+          ondrop="app.kanban.onDrop(event)">
+        </div>
+      </section>
+
+      <!-- Columna: En Sitio -->
+      <section class="kanban-column" id="col-srv-sitio" data-status="En Sitio" aria-label="Columna En Sitio">
+        <div class="column-header">
+          <div class="column-header-left">
+            <span class="column-dot" style="background:hsl(280,80%,65%)"></span>
+            <h2 class="column-title">En Sitio / Trabajando</h2>
+          </div>
+          <span class="column-count" id="count-srv-sitio">0</span>
+        </div>
+        <div class="column-cards" id="cards-srv-sitio" data-status="En Sitio" ondragover="event.preventDefault()"
+          ondrop="app.kanban.onDrop(event)">
+        </div>
+      </section>
+
+      <!-- Columna: Finalizado -->
+      <section class="kanban-column" id="col-srv-finalizado" data-status="Finalizado" aria-label="Columna Finalizado">
+        <div class="column-header">
+          <div class="column-header-left">
+            <span class="column-dot" style="background:hsl(140,70%,50%)"></span>
+            <h2 class="column-title">Finalizado</h2>
+          </div>
+          <span class="column-count" id="count-srv-finalizado">0</span>
+        </div>
+        <div class="column-cards" id="cards-srv-finalizado" data-status="Finalizado" ondragover="event.preventDefault()"
+          ondrop="app.kanban.onDrop(event)">
+        </div>
+      </section>
+    </div> <!-- Fin kanban-board-servicio -->
+
   </main>
 
   <!-- ═══════════════════════════════════════════════
@@ -319,27 +405,78 @@
           <div class="wc-day-col" id="wc-col-4" data-day="4"></div>
           <div class="wc-day-col" id="wc-col-5" data-day="5"></div>
           <div class="wc-day-col" id="wc-col-6" data-day="6"></div>
-        </div>
-      </div>
-    </div>
-  </section>
+        </div> <!-- wc-body -->
+      </div> <!-- week-calendar -->
+    </div> <!-- week-calendar-wrapper -->
+  </section> <!-- agenda-view -->
 
   <!-- ═══════════════════════════════════════════════
        MODAL: NUEVA / EDITAR VISITA (AGENDA)
   ═══════════════════════════════════════════════ -->
-  <div class="modal-backdrop" id="modal-appointment" role="dialog" aria-modal="true" aria-labelledby="modal-apt-title" hidden>
+  <div class="modal-backdrop" id="modal-servicio" role="dialog" aria-modal="true" aria-labelledby="modal-apt-title" hidden>
     <div class="modal-panel modal-panel--large">
       <div class="modal-header">
-        <h2 class="modal-title" id="modal-apt-title">Nueva Visita Técnica</h2>
-        <button class="btn btn-ghost btn-icon modal-close" id="modal-apt-close" aria-label="Cerrar">
+        <h2 class="modal-title" id="modal-servicio-title">Nuevo Servicio a Domicilio / Visita</h2>
+        <button class="btn btn-ghost btn-icon modal-close" id="modal-servicio-close" aria-label="Cerrar">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
           </svg>
         </button>
       </div>
 
-      <form class="modal-form" id="apt-form" novalidate>
-        <input type="hidden" id="apt-field-id"/>
+      <form class="modal-form" id="servicio-form" novalidate>
+        <input type="hidden" id="srv-field-id"/>
+
+                <!-- === Sección: Datos del Cliente === -->
+        <fieldset class="form-section">
+          <legend class="form-section-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+            Datos del Cliente
+          </legend>
+          <div class="form-grid">
+            <div class="form-group form-group--span2">
+              <label class="form-label" for="srv-field-client-name">Nombre del Cliente <span class="req">*</span></label>
+              <div class="client-name-wrapper">
+                <input type="text" id="srv-field-client-name" class="form-input" placeholder="Ej. Juan Pérez García" required autocomplete="off" />
+                <div id="srv-client-autocomplete" class="client-autocomplete" hidden></div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="srv-field-client-phone">WhatsApp / Teléfono <span class="req">*</span></label>
+              <input type="tel" id="srv-field-client-phone" class="form-input mono" placeholder="Ej. +507 1234-5678" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="srv-field-client-cedula">Cédula</label>
+              <input type="text" id="srv-field-client-cedula" class="form-input mono" placeholder="Ej. 8-123-456" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="srv-field-client-ruc">RUC (Opcional)</label>
+              <input type="text" id="srv-field-client-ruc" class="form-input mono" placeholder="Ej. 155555555-2-2023" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="srv-field-status">Estado Inicial</label>
+              <select id="srv-field-status" class="form-input form-select">
+                <option value="Programado" selected>Programado</option>
+                <option value="Nuevo Ingreso">Nuevo Ingreso</option>
+                <option value="En Reparación">En Reparación</option>
+                <option value="Esperando Piezas">Esperando Piezas</option>
+                <option value="Listo para Entrega">Listo para Entrega</option>
+                <option value="Finalizado">Finalizado</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="srv-field-wa-line">Línea WhatsApp (Notificaciones)</label>
+              <select id="srv-field-wa-line" class="form-input form-select">
+                <option value="Línea 1 (ECU/Tableros)">Línea 1 (ECU/Tableros)</option>
+                <option value="Línea 2 (A/C)">Línea 2 (A/C)</option>
+                <option value="Ambas (Broadcast)">Ambas (Broadcast)</option>
+              </select>
+            </div>
+          </div>
+        </fieldset>
 
         <!-- === Sección: Fecha, Hora y Técnico === -->
         <fieldset class="form-section">
@@ -349,16 +486,16 @@
           </legend>
           <div class="form-grid">
             <div class="form-group">
-              <label class="form-label" for="apt-field-date">Fecha <span class="req">*</span></label>
-              <input type="date" id="apt-field-date" class="form-input" required/>
+              <label class="form-label" for="srv-field-date">Fecha <span class="req">*</span></label>
+              <input type="date" id="srv-field-date" class="form-input" required/>
             </div>
             <div class="form-group">
-              <label class="form-label" for="apt-field-time">Hora de inicio <span class="req">*</span></label>
-              <input type="time" id="apt-field-time" class="form-input" required/>
+              <label class="form-label" for="srv-field-time">Hora de inicio <span class="req">*</span></label>
+              <input type="time" id="srv-field-time" class="form-input" required/>
             </div>
             <div class="form-group">
-              <label class="form-label" for="apt-field-duration">Duración estimada <span class="req">*</span></label>
-              <select id="apt-field-duration" class="form-input form-select" required>
+              <label class="form-label" for="srv-field-duration">Duración estimada <span class="req">*</span></label>
+              <select id="srv-field-duration" class="form-input form-select" required>
                 <option value="30">30 minutos</option>
                 <option value="60" selected>1 hora</option>
                 <option value="90">1 hora 30 min</option>
@@ -377,8 +514,8 @@
               </select>
             </div>
             <div class="form-group">
-              <label class="form-label" for="apt-field-tech">Técnico Asignado <span class="req">*</span></label>
-              <select id="apt-field-tech" class="form-input form-select" required>
+              <label class="form-label" for="srv-field-tech">Técnico Asignado <span class="req">*</span></label>
+              <select id="srv-field-tech" class="form-input form-select" required>
                 <option value="">Seleccionar técnico…</option>
               </select>
             </div>
@@ -393,38 +530,38 @@
           </legend>
           <div class="form-grid">
             <div class="form-group form-group--span2" style="position:relative;">
-              <label class="form-label" for="apt-field-building">Nombre del PH / Edificio / Local <span class="req">*</span></label>
-              <input type="text" id="apt-field-building" class="form-input" placeholder="Ej. PH Torre Dorada, Edificio Mirador, Local Comercial…" required autocomplete="off"/>
+              <label class="form-label" for="srv-field-building">Nombre del PH / Edificio / Local <span class="req">*</span></label>
+              <input type="text" id="srv-field-building" class="form-input" placeholder="Ej. PH Torre Dorada, Edificio Mirador, Local Comercial…" required autocomplete="off"/>
               <div class="client-autocomplete" id="location-autocomplete" hidden></div>
             </div>
             <div class="form-group">
-              <label class="form-label" for="apt-field-apt">Número de Apto / Oficina</label>
-              <input type="text" id="apt-field-apt" class="form-input" placeholder="Ej. Apto 12-B, Piso 3, Local 5"/>
+              <label class="form-label" for="srv-field-apt">Número de Apto / Oficina</label>
+              <input type="text" id="srv-field-apt" class="form-input" placeholder="Ej. Apto 12-B, Piso 3, Local 5"/>
             </div>
             <div class="form-group">
-              <label class="form-label" for="apt-field-resident-name">Nombre del Residente / Inquilino <span class="req">*</span></label>
-              <input type="text" id="apt-field-resident-name" class="form-input" placeholder="Nombre completo del residente"/>
+              <label class="form-label" for="srv-field-resident-name">Nombre del Residente / Inquilino <span class="req">*</span></label>
+              <input type="text" id="srv-field-resident-name" class="form-input" placeholder="Nombre completo del residente"/>
             </div>
             <div class="form-group">
-              <label class="form-label" for="apt-field-resident-phone">Teléfono del Residente <span class="req">*</span></label>
-              <input type="tel" id="apt-field-resident-phone" class="form-input mono" placeholder="+507 6000-0000"/>
+              <label class="form-label" for="srv-field-resident-phone">Teléfono del Residente <span class="req">*</span></label>
+              <input type="tel" id="srv-field-resident-phone" class="form-input mono" placeholder="+507 6000-0000"/>
             </div>
             <div class="form-group">
-              <label class="form-label" for="apt-field-contact-name">Nombre del Encargado / Administrador</label>
-              <input type="text" id="apt-field-contact-name" class="form-input" placeholder="Nombre del encargado o administrador"/>
+              <label class="form-label" for="srv-field-contact-name">Nombre del Encargado / Administrador</label>
+              <input type="text" id="srv-field-contact-name" class="form-input" placeholder="Nombre del encargado o administrador"/>
             </div>
             <div class="form-group">
-              <label class="form-label" for="apt-field-contact-phone">Teléfono del Encargado</label>
-              <input type="tel" id="apt-field-contact-phone" class="form-input mono" placeholder="+507 6000-0000"/>
+              <label class="form-label" for="srv-field-contact-phone">Teléfono del Encargado</label>
+              <input type="tel" id="srv-field-contact-phone" class="form-input mono" placeholder="+507 6000-0000"/>
             </div>
             <div class="form-group form-group--span2" style="grid-column: 1 / -1; display: flex; gap: 20px; align-items: center; margin-top: 5px; margin-bottom: 5px;">
               <label class="form-label" style="font-weight: 600; margin-bottom: 0;">Recordatorios automáticos (bot):</label>
               <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.85rem; color:var(--t-primary); user-select:none;">
-                <input type="checkbox" id="apt-field-remind-day-before" checked style="width:16px; height:16px; accent-color:var(--c-accent); cursor:pointer;"/>
+                <input type="checkbox" id="srv-field-remind-day-before" checked style="width:16px; height:16px; accent-color:var(--c-accent); cursor:pointer;"/>
                 Día anterior (4:00 PM)
               </label>
               <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.85rem; color:var(--t-primary); user-select:none;">
-                <input type="checkbox" id="apt-field-remind-hour-before" checked style="width:16px; height:16px; accent-color:var(--c-accent); cursor:pointer;"/>
+                <input type="checkbox" id="srv-field-remind-hour-before" checked style="width:16px; height:16px; accent-color:var(--c-accent); cursor:pointer;"/>
                 1 hora antes
               </label>
             </div>
@@ -440,24 +577,24 @@
           <div class="form-grid">
             <div class="form-group form-group--span2">
               <div class="device-type-selector" role="radiogroup">
-                <button type="button" class="device-type-btn active" id="apt-svc-air" data-service="air">
+                <button type="button" class="device-type-btn active" id="srv-svc-air" data-service="air">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93 4.93 19.07"/></svg>
                   ❄️ Aire Acondicionado
                 </button>
-                <button type="button" class="device-type-btn" id="apt-svc-auto" data-service="automotive">
+                <button type="button" class="device-type-btn" id="srv-svc-auto" data-service="automotive">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
                   🚗 Automotriz
                 </button>
-                <button type="button" class="device-type-btn" id="apt-svc-general" data-service="general">
+                <button type="button" class="device-type-btn" id="srv-svc-general" data-service="general">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 9.36l-7.1 7.1a1 1 0 0 1-1.41-1.41l7.1-7.1a6 6 0 0 1 9.36-7.94l-3.77 3.77a1 1 0 0 0 0 1.4z"/></svg>
                   🔧 Servicio General
                 </button>
               </div>
-              <input type="hidden" id="apt-field-service-type" value="air"/>
+              <input type="hidden" id="srv-field-service-type" value="air"/>
             </div>
 
             <!-- Campos: Aire Acondicionado -->
-            <div id="apt-fields-air" class="form-group form-group--span2">
+            <div id="srv-fields-air" class="form-group form-group--span2">
               <div class="form-grid">
                 <div class="form-group form-group--span2" style="grid-column: 1 / -1; margin-bottom: 5px;">
                   <label class="form-label">Tipo de Trabajo A/C <span class="req">*</span></label>
@@ -475,11 +612,11 @@
                       🛠️ Instalación
                     </label>
                   </div>
-                  <input type="hidden" id="apt-field-ac-subtype" value="mantenimiento"/>
+                  <input type="hidden" id="srv-field-ac-subtype" value="mantenimiento"/>
                 </div>
                 <div class="form-group">
-                  <label class="form-label" for="apt-field-ac-brand">Marca A/C</label>
-                  <select id="apt-field-ac-brand" class="form-input form-select">
+                  <label class="form-label" for="srv-field-ac-brand">Marca A/C</label>
+                  <select id="srv-field-ac-brand" class="form-input form-select">
                     <option value="">Seleccionar marca…</option>
                     <option>Samsung</option><option>LG</option><option>Daikin</option>
                     <option>TCL</option><option>Adina</option><option>Royal</option>
@@ -489,12 +626,12 @@
                   </select>
                 </div>
                 <div class="form-group">
-                  <label class="form-label" for="apt-field-ac-model">Modelo</label>
-                  <input type="text" id="apt-field-ac-model" class="form-input" placeholder="Ej. Dual Inverter 18000 BTU"/>
+                  <label class="form-label" for="srv-field-ac-model">Modelo</label>
+                  <input type="text" id="srv-field-ac-model" class="form-input" placeholder="Ej. Dual Inverter 18000 BTU"/>
                 </div>
                 <div class="form-group">
-                  <label class="form-label" for="apt-field-ac-type">Tipo de Equipo</label>
-                  <select id="apt-field-ac-type" class="form-input form-select">
+                  <label class="form-label" for="srv-field-ac-type">Tipo de Equipo</label>
+                  <select id="srv-field-ac-type" class="form-input form-select">
                     <option value="">Seleccionar…</option>
                     <option>Split Residencial</option>
                     <option>Cassette</option>
@@ -504,40 +641,40 @@
                   </select>
                 </div>
                 <div class="form-group form-group--span2" style="grid-column: 1 / -1;">
-                  <label class="form-label" for="apt-field-ac-fault">Falla Reportada por el Cliente</label>
-                  <textarea id="apt-field-ac-fault" class="form-input form-textarea" rows="2" placeholder="Describe la falla que reporta el cliente…"></textarea>
+                  <label class="form-label" for="srv-field-ac-fault">Falla Reportada por el Cliente</label>
+                  <textarea id="srv-field-ac-fault" class="form-input form-textarea" rows="2" placeholder="Describe la falla que reporta el cliente…"></textarea>
                 </div>
                 <div class="form-group form-group--span2" style="grid-column: 1 / -1;">
-                  <label class="form-label" for="apt-field-ac-notes">Nota de Revisión Técnica</label>
-                  <textarea id="apt-field-ac-notes" class="form-input form-textarea" rows="2" placeholder="Diagnóstico previo, materiales a llevar, observaciones…"></textarea>
+                  <label class="form-label" for="srv-field-ac-notes">Nota de Revisión Técnica</label>
+                  <textarea id="srv-field-ac-notes" class="form-input form-textarea" rows="2" placeholder="Diagnóstico previo, materiales a llevar, observaciones…"></textarea>
                 </div>
               </div>
             </div>
 
             <!-- Campos: Automotriz -->
-            <div id="apt-fields-auto" class="form-group form-group--span2" style="display:none">
+            <div id="srv-fields-auto" class="form-group form-group--span2" style="display:none">
               <div class="form-grid">
                 <div class="form-group">
-                  <label class="form-label" for="apt-field-auto-year">Año del Vehículo</label>
-                  <input type="number" id="apt-field-auto-year" class="form-input" placeholder="Ej. 2020" min="1970" max="2030"/>
+                  <label class="form-label" for="srv-field-auto-year">Año del Vehículo</label>
+                  <input type="number" id="srv-field-auto-year" class="form-input" placeholder="Ej. 2020" min="1970" max="2030"/>
                 </div>
                 <div class="form-group">
-                  <label class="form-label" for="apt-field-auto-model">Marca / Modelo</label>
-                  <input type="text" id="apt-field-auto-model" class="form-input" placeholder="Ej. Toyota Corolla"/>
+                  <label class="form-label" for="srv-field-auto-model">Marca / Modelo</label>
+                  <input type="text" id="srv-field-auto-model" class="form-input" placeholder="Ej. Toyota Corolla"/>
                 </div>
                 <div class="form-group form-group--span2" style="grid-column: 1 / -1;">
-                  <label class="form-label" for="apt-field-auto-fault">Falla Reportada por el Cliente</label>
-                  <textarea id="apt-field-auto-fault" class="form-input form-textarea" rows="2" placeholder="Describe la falla que reporta el cliente…"></textarea>
+                  <label class="form-label" for="srv-field-auto-fault">Falla Reportada por el Cliente</label>
+                  <textarea id="srv-field-auto-fault" class="form-input form-textarea" rows="2" placeholder="Describe la falla que reporta el cliente…"></textarea>
                 </div>
                 <div class="form-group form-group--span2" style="grid-column: 1 / -1;">
-                  <label class="form-label" for="apt-field-auto-notes">Nota de Revisión Técnica</label>
-                  <textarea id="apt-field-auto-notes" class="form-input form-textarea" rows="2" placeholder="Diagnóstico previo, herramientas a llevar, observaciones…"></textarea>
+                  <label class="form-label" for="srv-field-auto-notes">Nota de Revisión Técnica</label>
+                  <textarea id="srv-field-auto-notes" class="form-input form-textarea" rows="2" placeholder="Diagnóstico previo, herramientas a llevar, observaciones…"></textarea>
                 </div>
               </div>
             </div>
 
             <!-- Campos: Servicio General -->
-            <div id="apt-fields-general" class="form-group form-group--span2" style="display:none;">
+            <div id="srv-fields-general" class="form-group form-group--span2" style="display:none;">
               <div class="form-grid">
                 <div class="form-group form-group--span2" style="grid-column: 1 / -1; margin-bottom: 5px;">
                   <label class="form-label">Tipo de Trabajo <span class="req">*</span></label>
@@ -567,11 +704,11 @@
                       Servicio de programación o entrega
                     </label>
                   </div>
-                  <input type="hidden" id="apt-field-gen-subtype" value=""/>
+                  <input type="hidden" id="srv-field-gen-subtype" value=""/>
                 </div>
                 <div class="form-group form-group--span2" style="grid-column: 1 / -1;">
-                  <label class="form-label" for="apt-field-gen-notes">Notas / Descripción del Servicio</label>
-                  <textarea id="apt-field-gen-notes" class="form-input form-textarea" rows="2" placeholder="Describe los detalles del trabajo general a realizar…"></textarea>
+                  <label class="form-label" for="srv-field-gen-notes">Notas / Descripción del Servicio</label>
+                  <textarea id="srv-field-gen-notes" class="form-input form-textarea" rows="2" placeholder="Describe los detalles del trabajo general a realizar…"></textarea>
                 </div>
               </div>
             </div>
@@ -579,8 +716,29 @@
           </div>
         </fieldset>
 
+                <!-- === Sección: Presupuesto y Abono === -->
+        <fieldset class="form-section">
+          <legend class="form-section-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="1" x2="12" y2="23" />
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+            </svg>
+            Presupuesto y Cobro
+          </legend>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label" for="srv-field-budget">Presupuesto Estimado ($)</label>
+              <input type="number" id="srv-field-budget" class="form-input mono" placeholder="0.00" min="0" step="0.01" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="srv-field-down-payment">Abono Pagado ($)</label>
+              <input type="number" id="srv-field-down-payment" class="form-input mono" placeholder="0.00" min="0" step="0.01" />
+            </div>
+          </div>
+        </fieldset>
+
         <div class="modal-footer">
-          <button type="button" class="btn btn-ghost" id="btn-apt-cancel">Cancelar</button>
+          <button type="button" class="btn btn-ghost" id="btn-servicio-cancel">Cancelar</button>
           <button type="button" class="btn btn-wa" id="btn-apt-wa-resident" title="Notificar WhatsApp al residente/inquilino">
             <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448{1.065}c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
             Residente
@@ -605,7 +763,7 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
             Eliminar
           </button>
-          <button type="submit" class="btn btn-primary" id="btn-apt-save">
+          <button type="submit" class="btn btn-primary" id="btn-servicio-save">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
             Guardar Visita
           </button>
@@ -780,8 +938,7 @@
             <div class="form-group form-group--span2">
               <label class="form-label" for="field-client-name">Nombre del Cliente <span class="req">*</span></label>
               <div class="client-name-wrapper">
-                <input type="text" id="field-client-name" class="form-input" placeholder="Ej. Juan Pérez García" required
-                  autocomplete="off" />
+                <input type="text" id="field-client-name" class="form-input" placeholder="Ej. Juan Pérez García" required autocomplete="off" />
                 <div id="client-autocomplete" class="client-autocomplete" hidden></div>
               </div>
             </div>
@@ -813,6 +970,7 @@
                 <option value="Esperando Piezas">Esperando Piezas</option>
                 <option value="Listo para Entrega">Listo para Entrega</option>
                 <option value="Entregado">Entregado</option>
+                <option value="Finalizado">Finalizado</option>
               </select>
             </div>
             <div class="form-group">
@@ -825,8 +983,10 @@
           </div>
         </fieldset>
 
+        
+
         <!-- === Sección: Tipo de Dispositivo === -->
-        <fieldset class="form-section">
+        <fieldset class="form-section" id="section-device">
           <legend class="form-section-title">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="2" y="3" width="20" height="14" rx="2" />
@@ -982,14 +1142,14 @@
             </div>
 
             <!-- ── Componentes entregados por el cliente ── -->
-            <div class="dynamic-fields-header form-group--span2" style="margin-top:8px;">
+            <div class="dynamic-fields-header form-group--span2" style="margin-top:8px;" id="section-components-header">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="9 11 12 14 22 4" />
                 <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
               </svg>
               Componentes Entregados por el Cliente
             </div>
-            <div class="form-group form-group--span2">
+            <div class="form-group form-group--span2" id="section-components-body">
               <div class="checkbox-list">
                 <label class="checkbox-item">
                   <input type="checkbox" id="chk-tarjeta-evap" class="checkbox-input" />
@@ -1043,10 +1203,10 @@
           </legend>
           <div class="form-grid">
             <div class="form-group form-group--span2">
-              <label class="form-label" for="field-fault">Falla Reportada por el Cliente <span
-                  class="req">*</span></label>
+              <label class="form-label" for="field-fault"><span id="lbl-fault-text">Falla Reportada por el Cliente</span> <span
+                  class="req" id="req-fault">*</span></label>
               <textarea id="field-fault" class="form-input form-textarea" rows="3"
-                placeholder="Describe la falla tal como la reporta el cliente…" required></textarea>
+                placeholder="Describe la falla tal como la reporta el cliente o detalles del requerimiento…" required></textarea>
             </div>
             <div class="form-group form-group--span2">
               <label class="form-label" for="field-tech-notes">Notas Técnicas / Diagnóstico</label>
@@ -1090,6 +1250,200 @@
         <div class="modal-footer">
           <button type="button" class="btn btn-ghost" id="btn-order-cancel">Cancelar</button>
           <button type="submit" class="btn btn-primary" id="btn-order-save">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+              <polyline points="17 21 17 13 7 13 7 21" />
+              <polyline points="7 3 7 8 15 8" />
+            </svg>
+            Guardar Orden
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       MODAL: DETALLE DE ORDEN
+  ═══════════════════════════════════════════════ -->
+  
+
+  <!-- MODAL SERVICIO A DOMICILIO -->
+<div class="modal-backdrop" id="modal-servicio" role="dialog" aria-modal="true" aria-labelledby="modal-order-title"
+    hidden>
+    <div class="modal-panel modal-panel--large">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modal-servicio-title">Nuevo Servicio a Domicilio</h2>
+        <button class="btn btn-ghost btn-icon modal-close" id="modal-servicio-close" aria-label="Cerrar modal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+
+      <form class="modal-form" id="servicio-form" novalidate>
+        <input type="hidden" id="srv-field-order-id" />
+
+        
+
+        <!-- === Sección: Datos del Cliente === -->
+        <fieldset class="form-section">
+          <legend class="form-section-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+            Datos del Cliente
+          </legend>
+          <div class="form-grid">
+            <div class="form-group form-group--span2">
+              <label class="form-label" for="srv-field-client-name">Nombre del Cliente <span class="req">*</span></label>
+              <div class="client-name-wrapper">
+                <input type="text" id="srv-field-client-name" class="form-input" placeholder="Ej. Juan Pérez García" required
+                  autocomplete="off" />
+                <div id="srv-client-autocomplete" class="client-autocomplete" hidden></div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="srv-field-client-phone">WhatsApp / Teléfono <span class="req">*</span></label>
+              <input type="tel" id="srv-field-client-phone" class="form-input mono" placeholder="Ej. +507 1234-5678"
+                required />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="srv-field-client-cedula">Cédula</label>
+              <input type="text" id="srv-field-client-cedula" class="form-input mono" placeholder="Ej. 8-123-456" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="srv-field-client-ruc">RUC (Opcional)</label>
+              <input type="text" id="srv-field-client-ruc" class="form-input mono" placeholder="Ej. 155555555-2-2023" />
+            </div>
+            <div class="form-group" style="position: relative;">
+              <label class="form-label" for="srv-field-client-pin">PIN de Seguridad <span class="req">*</span></label>
+              <div style="display: flex; gap: 8px;">
+                <input type="text" id="srv-field-client-pin" class="form-input mono" placeholder="Ej. 12345" required />
+                <button type="button" class="btn btn-ghost btn-icon" id="btn-generate-pin" title="Generar PIN basado en Cédula o RUC" style="padding: 0 8px;">🎲</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="srv-field-status">Estado Inicial</label>
+              <select id="srv-field-status" class="form-input form-select">
+                <option value="Programado">Programado</option>
+                <option value="En Camino">En Camino</option>
+                <option value="En Sitio">En Sitio / Trabajando</option>
+                <option value="Finalizado">Finalizado</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="srv-field-wa-line">Línea WhatsApp (Notificaciones)</label>
+              <select id="srv-field-wa-line" class="form-input form-select">
+                <option value="1">Línea 1 (ECU/Tableros)</option>
+                <option value="2">Línea 2 (A/C/Otros)</option>
+              </select>
+            </div>
+          </div>
+        </fieldset>
+
+        <!-- === Sección: Servicio en Sitio (Oculto por defecto) === -->
+        <fieldset class="form-section" id="srv-section-field-service" style="display: block;">
+          <legend class="form-section-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+              <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            Detalles del Servicio en Sitio
+          </legend>
+          <div class="form-grid">
+            <div class="form-group form-group--span2">
+              <label class="form-label" for="srv-field-fs-service">Servicio a Realizar <span class="req">*</span></label>
+              <select id="srv-field-fs-service" class="form-input form-select">
+                <option value="">Seleccionar servicio…</option>
+                <option value="Reparación de Aire Acondicionado">Reparación de Aire Acondicionado</option>
+                <option value="Instalación de Aire Acondicionado">Instalación de Aire Acondicionado</option>
+                <option value="Instalación y reparaciones eléctricas">Instalación y reparaciones eléctricas</option>
+                <option value="Instalación de dispositivos Inteligentes">Instalación de dispositivos Inteligentes</option>
+                <option value="Sistemas de Alarma y Video Vigilancia">Sistemas de Alarma y Video Vigilancia</option>
+                <option value="Otros">Otros</option>
+              </select>
+            </div>
+            <div class="form-group form-group--span2">
+              <label class="form-label">Tipo de Lugar <span class="req">*</span></label>
+              <div style="display:flex; gap:16px;">
+                <label style="display:flex; align-items:center; gap:6px; cursor:pointer;"><input type="radio" name="srv_fs_location" value="Casa" checked style="accent-color:var(--c-accent);"> Casa</label>
+                <label style="display:flex; align-items:center; gap:6px; cursor:pointer;"><input type="radio" name="srv_fs_location" value="Apto" style="accent-color:var(--c-accent);"> Apto</label>
+                <label style="display:flex; align-items:center; gap:6px; cursor:pointer;"><input type="radio" name="srv_fs_location" value="Local" style="accent-color:var(--c-accent);"> Local</label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="srv-field-fs-ph">Barriada / PH / Edificio</label>
+              <input type="text" id="srv-field-fs-ph" class="form-input" placeholder="Ej. Costa del Este, PH Torres..." />
+            </div>
+            <div class="form-group form-group--span2">
+              <label class="form-label" for="srv-field-fs-address">Dirección Exacta <span class="req">*</span></label>
+              <textarea id="srv-field-fs-address" class="form-input form-textarea" rows="2" placeholder="Ej. Calle 50, Casa 123..."></textarea>
+            </div>
+          </div>
+        </fieldset>
+
+        
+
+
+        <!-- === Sección: Falla y Diagnóstico === -->
+        <fieldset class="form-section">
+          <legend class="form-section-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path
+                d="M14.5 10c-.83 0-1.5-.67-1.5-1.5v-5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5zM20.5 10H19V8.5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM9.5 14c.83 0 1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5S8 21.33 8 20.5v-5c0-.83.67-1.5 1.5-1.5zM3.5 14H5v1.5c0 .83-.67 1.5-1.5 1.5S2 16.33 2 15.5 2.67 14 3.5 14zM14 14.5c0-.83.67-1.5 1.5-1.5h5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5h-5c-.83 0-1.5-.67-1.5-1.5zM15.5 19H14v1.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zM10 9.5C10 8.67 9.33 8 8.5 8h-5C2.67 8 2 8.67 2 9.5S2.67 11 3.5 11h5c.83 0 1.5-.67 1.5-1.5zM8.5 5H10V3.5C10 2.67 9.33 2 8.5 2S7 2.67 7 3.5 7.67 5 8.5 5z" />
+            </svg>
+            Descripción de la Falla
+          </legend>
+          <div class="form-grid">
+            <div class="form-group form-group--span2">
+              <label class="form-label" for="srv-field-fault"><span id="lbl-fault-text">Detalles / Requerimientos</span> </label>
+              <textarea id="srv-field-fault" class="form-input form-textarea" rows="3"
+                placeholder="Describe la falla tal como la reporta el cliente o detalles del requerimiento…" required></textarea>
+            </div>
+            <div class="form-group form-group--span2">
+              <label class="form-label" for="srv-field-tech-notes">Notas Técnicas / Diagnóstico</label>
+              <textarea id="srv-field-tech-notes" class="form-input form-textarea" rows="3"
+                placeholder="Diagnóstico técnico, componentes a revisar, trabajo realizado…"></textarea>
+            </div>
+          </div>
+        </fieldset>
+
+        <!-- === Sección: Fechas y Costos === -->
+        <fieldset class="form-section">
+          <legend class="form-section-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" />
+              <line x1="16" y1="2" x2="16" y2="6" />
+              <line x1="8" y1="2" x2="8" y2="6" />
+              <line x1="3" y1="10" x2="21" y2="10" />
+            </svg>
+            Fechas y Costos
+          </legend>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label" for="srv-field-due-date">Fecha de Entrega Estimada</label>
+              <input type="date" id="srv-field-due-date" class="form-input" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="srv-field-budget">Costo Total ($)</label>
+              <input type="number" id="srv-field-budget" class="form-input" placeholder="0.00" min="0" step="0.01" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="srv-field-down-payment">Anticipo Recibido ($)</label>
+              <input type="number" id="srv-field-down-payment" class="form-input" placeholder="0.00" min="0" step="0.01" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Saldo Pendiente ($)</label>
+              <div class="form-input balance-display" id="balance-display">$0.00</div>
+            </div>
+          </div>
+        </fieldset>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-ghost" id="btn-order-cancel">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="btn-servicio-save">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
               <polyline points="17 21 17 13 7 13 7 21" />

@@ -1859,11 +1859,16 @@ const clientsUIModule = {
       el.addEventListener('click', () => {
         const client = clientsModule.clients.get(el.dataset.id);
         if (!client) return;
-        document.getElementById(prefix ? `${prefix}-field-client-name` : 'field-client-name').value = client.name;
-        document.getElementById(prefix ? `${prefix}-field-client-phone` : 'field-client-phone').value = client.phone || '';
-        document.getElementById(prefix ? `${prefix}-field-client-cedula` : 'field-client-cedula').value = client.clientCedula || '';
-        document.getElementById(prefix ? `${prefix}-field-client-ruc` : 'field-client-ruc').value = client.clientRuc || '';
-        document.getElementById(prefix ? `${prefix}-field-client-pin` : 'field-client-pin').value = client.clientPin || '';
+        const fName = document.getElementById(prefix ? `${prefix}-field-client-name` : 'field-client-name');
+        if(fName) fName.value = client.name;
+        const fPhone = document.getElementById(prefix ? `${prefix}-field-client-phone` : 'field-client-phone');
+        if(fPhone) fPhone.value = client.phone || '';
+        const fCedula = document.getElementById(prefix ? `${prefix}-field-client-cedula` : 'field-client-cedula');
+        if(fCedula) fCedula.value = client.clientCedula || '';
+        const fRuc = document.getElementById(prefix ? `${prefix}-field-client-ruc` : 'field-client-ruc');
+        if(fRuc) fRuc.value = client.clientRuc || '';
+        const fPin = document.getElementById(prefix ? `${prefix}-field-client-pin` : 'field-client-pin');
+        if(fPin) fPin.value = client.clientPin || '';
         dropdown.hidden = true;
         if (prefix === 'srv') {
             if (typeof servicioFormModule !== 'undefined') servicioFormModule.updateBalance?.();

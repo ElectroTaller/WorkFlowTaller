@@ -278,11 +278,25 @@
 
     <!-- TABLERO SERVICIOS A DOMICILIO -->
     <div class="kanban-board" id="kanban-board-servicio" style="display: none;">
+      <!-- Columna: Nuevo Ingreso -->
+      <section class="kanban-column" id="col-srv-nuevo" data-status="Nuevo Ingreso" aria-label="Columna Nuevo Ingreso">
+        <div class="column-header">
+          <div class="column-header-left">
+            <span class="column-dot" style="background:hsl(210,80%,60%)"></span>
+            <h2 class="column-title">Nuevo Ingreso</h2>
+          </div>
+          <span class="column-count" id="count-srv-nuevo">0</span>
+        </div>
+        <div class="column-cards" id="cards-srv-nuevo" data-status="Nuevo Ingreso" ondragover="event.preventDefault()"
+          ondrop="app.kanban.onDrop(event)">
+        </div>
+      </section>
+
       <!-- Columna: Programado -->
       <section class="kanban-column" id="col-srv-programado" data-status="Programado" aria-label="Columna Programado">
         <div class="column-header">
           <div class="column-header-left">
-            <span class="column-dot" style="background:hsl(200,80%,60%)"></span>
+            <span class="column-dot" style="background:hsl(280,80%,60%)"></span>
             <h2 class="column-title">Programado</h2>
           </div>
           <span class="column-count" id="count-srv-programado">0</span>
@@ -292,30 +306,16 @@
         </div>
       </section>
 
-      <!-- Columna: En Camino -->
-      <section class="kanban-column" id="col-srv-camino" data-status="En Camino" aria-label="Columna En Camino">
+      <!-- Columna: En Reparación -->
+      <section class="kanban-column" id="col-srv-reparacion" data-status="En Reparación" aria-label="Columna En Reparación">
         <div class="column-header">
           <div class="column-header-left">
-            <span class="column-dot" style="background:hsl(40,100%,50%)"></span>
-            <h2 class="column-title">En Camino</h2>
+            <span class="column-dot" style="background:hsl(35,90%,55%)"></span>
+            <h2 class="column-title">En Reparación / Sitio</h2>
           </div>
-          <span class="column-count" id="count-srv-camino">0</span>
+          <span class="column-count" id="count-srv-reparacion">0</span>
         </div>
-        <div class="column-cards" id="cards-srv-camino" data-status="En Camino" ondragover="event.preventDefault()"
-          ondrop="app.kanban.onDrop(event)">
-        </div>
-      </section>
-
-      <!-- Columna: En Sitio -->
-      <section class="kanban-column" id="col-srv-sitio" data-status="En Sitio" aria-label="Columna En Sitio">
-        <div class="column-header">
-          <div class="column-header-left">
-            <span class="column-dot" style="background:hsl(280,80%,65%)"></span>
-            <h2 class="column-title">En Sitio / Trabajando</h2>
-          </div>
-          <span class="column-count" id="count-srv-sitio">0</span>
-        </div>
-        <div class="column-cards" id="cards-srv-sitio" data-status="En Sitio" ondragover="event.preventDefault()"
+        <div class="column-cards" id="cards-srv-reparacion" data-status="En Reparación" ondragover="event.preventDefault()"
           ondrop="app.kanban.onDrop(event)">
         </div>
       </section>
@@ -324,7 +324,7 @@
       <section class="kanban-column" id="col-srv-finalizado" data-status="Finalizado" aria-label="Columna Finalizado">
         <div class="column-header">
           <div class="column-header-left">
-            <span class="column-dot" style="background:hsl(140,70%,50%)"></span>
+            <span class="column-dot" style="background:hsl(140,70%,45%)"></span>
             <h2 class="column-title">Finalizado</h2>
           </div>
           <span class="column-count" id="count-srv-finalizado">0</span>
@@ -333,7 +333,23 @@
           ondrop="app.kanban.onDrop(event)">
         </div>
       </section>
-    </div> <!-- Fin kanban-board-servicio -->
+      
+      <!-- Columna: Entregado -->
+      <section class="kanban-column" id="col-srv-entregado" data-status="Entregado" aria-label="Columna Entregado">
+        <div class="column-header">
+          <div class="column-header-left">
+            <span class="column-dot" style="background:hsl(0,0%,40%)"></span>
+            <h2 class="column-title">Entregado</h2>
+          </div>
+          <span class="column-count" id="count-srv-entregado">0</span>
+        </div>
+        <div class="column-cards" id="cards-srv-entregado" data-status="Entregado" ondragover="event.preventDefault()"
+          ondrop="app.kanban.onDrop(event)">
+        </div>
+      </section>
+    </div>
+
+
 
   </main>
 
@@ -459,12 +475,11 @@
             <div class="form-group">
               <label class="form-label" for="srv-field-status">Estado Inicial</label>
               <select id="srv-field-status" class="form-input form-select">
-                <option value="Programado" selected>Programado</option>
                 <option value="Nuevo Ingreso">Nuevo Ingreso</option>
-                <option value="En Reparación">En Reparación</option>
-                <option value="Esperando Piezas">Esperando Piezas</option>
-                <option value="Listo para Entrega">Listo para Entrega</option>
+                <option value="Programado" selected>Programado</option>
+                <option value="En Reparación">En Reparación / Sitio</option>
                 <option value="Finalizado">Finalizado</option>
+                <option value="Entregado">Entregado</option>
               </select>
             </div>
             <div class="form-group">
@@ -1268,198 +1283,7 @@
   
 
   <!-- MODAL SERVICIO A DOMICILIO -->
-<div class="modal-backdrop" id="modal-servicio" role="dialog" aria-modal="true" aria-labelledby="modal-order-title"
-    hidden>
-    <div class="modal-panel modal-panel--large">
-      <div class="modal-header">
-        <h2 class="modal-title" id="modal-servicio-title">Nuevo Servicio a Domicilio</h2>
-        <button class="btn btn-ghost btn-icon modal-close" id="modal-servicio-close" aria-label="Cerrar modal">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <line x1="18" y1="6" x2="6" y2="18" />
-            <line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
-        </button>
-      </div>
-
-      <form class="modal-form" id="servicio-form" novalidate>
-        <input type="hidden" id="srv-field-order-id" />
-
-        
-
-        <!-- === Sección: Datos del Cliente === -->
-        <fieldset class="form-section">
-          <legend class="form-section-title">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-              <circle cx="12" cy="7" r="4" />
-            </svg>
-            Datos del Cliente
-          </legend>
-          <div class="form-grid">
-            <div class="form-group form-group--span2">
-              <label class="form-label" for="srv-field-client-name">Nombre del Cliente <span class="req">*</span></label>
-              <div class="client-name-wrapper">
-                <input type="text" id="srv-field-client-name" class="form-input" placeholder="Ej. Juan Pérez García" required
-                  autocomplete="off" />
-                <div id="srv-client-autocomplete" class="client-autocomplete" hidden></div>
-              </div>
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="srv-field-client-phone">WhatsApp / Teléfono <span class="req">*</span></label>
-              <input type="tel" id="srv-field-client-phone" class="form-input mono" placeholder="Ej. +507 1234-5678"
-                required />
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="srv-field-client-cedula">Cédula</label>
-              <input type="text" id="srv-field-client-cedula" class="form-input mono" placeholder="Ej. 8-123-456" />
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="srv-field-client-ruc">RUC (Opcional)</label>
-              <input type="text" id="srv-field-client-ruc" class="form-input mono" placeholder="Ej. 155555555-2-2023" />
-            </div>
-            <div class="form-group" style="position: relative;">
-              <label class="form-label" for="srv-field-client-pin">PIN de Seguridad <span class="req">*</span></label>
-              <div style="display: flex; gap: 8px;">
-                <input type="text" id="srv-field-client-pin" class="form-input mono" placeholder="Ej. 12345" required />
-                <button type="button" class="btn btn-ghost btn-icon" id="btn-generate-pin" title="Generar PIN basado en Cédula o RUC" style="padding: 0 8px;">🎲</button>
-              </div>
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="srv-field-status">Estado Inicial</label>
-              <select id="srv-field-status" class="form-input form-select">
-                <option value="Programado">Programado</option>
-                <option value="En Camino">En Camino</option>
-                <option value="En Sitio">En Sitio / Trabajando</option>
-                <option value="Finalizado">Finalizado</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="srv-field-wa-line">Línea WhatsApp (Notificaciones)</label>
-              <select id="srv-field-wa-line" class="form-input form-select">
-                <option value="1">Línea 1 (ECU/Tableros)</option>
-                <option value="2">Línea 2 (A/C/Otros)</option>
-              </select>
-            </div>
-          </div>
-        </fieldset>
-
-        <!-- === Sección: Servicio en Sitio (Oculto por defecto) === -->
-        <fieldset class="form-section" id="srv-section-field-service" style="display: block;">
-          <legend class="form-section-title">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-              <polyline points="9 22 9 12 15 12 15 22"></polyline>
-            </svg>
-            Detalles del Servicio en Sitio
-          </legend>
-          <div class="form-grid">
-            <div class="form-group form-group--span2">
-              <label class="form-label" for="srv-field-fs-service">Servicio a Realizar <span class="req">*</span></label>
-              <select id="srv-field-fs-service" class="form-input form-select">
-                <option value="">Seleccionar servicio…</option>
-                <option value="Reparación de Aire Acondicionado">Reparación de Aire Acondicionado</option>
-                <option value="Instalación de Aire Acondicionado">Instalación de Aire Acondicionado</option>
-                <option value="Instalación y reparaciones eléctricas">Instalación y reparaciones eléctricas</option>
-                <option value="Instalación de dispositivos Inteligentes">Instalación de dispositivos Inteligentes</option>
-                <option value="Sistemas de Alarma y Video Vigilancia">Sistemas de Alarma y Video Vigilancia</option>
-                <option value="Otros">Otros</option>
-              </select>
-            </div>
-            <div class="form-group form-group--span2">
-              <label class="form-label">Tipo de Lugar <span class="req">*</span></label>
-              <div style="display:flex; gap:16px;">
-                <label style="display:flex; align-items:center; gap:6px; cursor:pointer;"><input type="radio" name="srv_fs_location" value="Casa" checked style="accent-color:var(--c-accent);"> Casa</label>
-                <label style="display:flex; align-items:center; gap:6px; cursor:pointer;"><input type="radio" name="srv_fs_location" value="Apto" style="accent-color:var(--c-accent);"> Apto</label>
-                <label style="display:flex; align-items:center; gap:6px; cursor:pointer;"><input type="radio" name="srv_fs_location" value="Local" style="accent-color:var(--c-accent);"> Local</label>
-              </div>
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="srv-field-fs-ph">Barriada / PH / Edificio</label>
-              <input type="text" id="srv-field-fs-ph" class="form-input" placeholder="Ej. Costa del Este, PH Torres..." />
-            </div>
-            <div class="form-group form-group--span2">
-              <label class="form-label" for="srv-field-fs-address">Dirección Exacta <span class="req">*</span></label>
-              <textarea id="srv-field-fs-address" class="form-input form-textarea" rows="2" placeholder="Ej. Calle 50, Casa 123..."></textarea>
-            </div>
-          </div>
-        </fieldset>
-
-        
-
-
-        <!-- === Sección: Falla y Diagnóstico === -->
-        <fieldset class="form-section">
-          <legend class="form-section-title">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path
-                d="M14.5 10c-.83 0-1.5-.67-1.5-1.5v-5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5zM20.5 10H19V8.5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM9.5 14c.83 0 1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5S8 21.33 8 20.5v-5c0-.83.67-1.5 1.5-1.5zM3.5 14H5v1.5c0 .83-.67 1.5-1.5 1.5S2 16.33 2 15.5 2.67 14 3.5 14zM14 14.5c0-.83.67-1.5 1.5-1.5h5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5h-5c-.83 0-1.5-.67-1.5-1.5zM15.5 19H14v1.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zM10 9.5C10 8.67 9.33 8 8.5 8h-5C2.67 8 2 8.67 2 9.5S2.67 11 3.5 11h5c.83 0 1.5-.67 1.5-1.5zM8.5 5H10V3.5C10 2.67 9.33 2 8.5 2S7 2.67 7 3.5 7.67 5 8.5 5z" />
-            </svg>
-            Descripción de la Falla
-          </legend>
-          <div class="form-grid">
-            <div class="form-group form-group--span2">
-              <label class="form-label" for="srv-field-fault"><span id="lbl-fault-text">Detalles / Requerimientos</span> </label>
-              <textarea id="srv-field-fault" class="form-input form-textarea" rows="3"
-                placeholder="Describe la falla tal como la reporta el cliente o detalles del requerimiento…" required></textarea>
-            </div>
-            <div class="form-group form-group--span2">
-              <label class="form-label" for="srv-field-tech-notes">Notas Técnicas / Diagnóstico</label>
-              <textarea id="srv-field-tech-notes" class="form-input form-textarea" rows="3"
-                placeholder="Diagnóstico técnico, componentes a revisar, trabajo realizado…"></textarea>
-            </div>
-          </div>
-        </fieldset>
-
-        <!-- === Sección: Fechas y Costos === -->
-        <fieldset class="form-section">
-          <legend class="form-section-title">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="3" y="4" width="18" height="18" rx="2" />
-              <line x1="16" y1="2" x2="16" y2="6" />
-              <line x1="8" y1="2" x2="8" y2="6" />
-              <line x1="3" y1="10" x2="21" y2="10" />
-            </svg>
-            Fechas y Costos
-          </legend>
-          <div class="form-grid">
-            <div class="form-group">
-              <label class="form-label" for="srv-field-due-date">Fecha de Entrega Estimada</label>
-              <input type="date" id="srv-field-due-date" class="form-input" />
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="srv-field-budget">Costo Total ($)</label>
-              <input type="number" id="srv-field-budget" class="form-input" placeholder="0.00" min="0" step="0.01" />
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="srv-field-down-payment">Anticipo Recibido ($)</label>
-              <input type="number" id="srv-field-down-payment" class="form-input" placeholder="0.00" min="0" step="0.01" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">Saldo Pendiente ($)</label>
-              <div class="form-input balance-display" id="balance-display">$0.00</div>
-            </div>
-          </div>
-        </fieldset>
-
-        <div class="modal-footer">
-          <button type="button" class="btn btn-ghost" id="btn-order-cancel">Cancelar</button>
-          <button type="submit" class="btn btn-primary" id="btn-servicio-save">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-              <polyline points="17 21 17 13 7 13 7 21" />
-              <polyline points="7 3 7 8 15 8" />
-            </svg>
-            Guardar Orden
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- ═══════════════════════════════════════════════
-       MODAL: DETALLE DE ORDEN
-  ═══════════════════════════════════════════════ -->
-  <div class="modal-backdrop" id="modal-detail" role="dialog" aria-modal="true" aria-labelledby="modal-detail-title"
+<div class="modal-backdrop" id="modal-detail" role="dialog" aria-modal="true" aria-labelledby="modal-detail-title"
     hidden>
     <div class="modal-panel">
       <div class="modal-header">

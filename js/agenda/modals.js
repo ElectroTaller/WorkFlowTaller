@@ -33,7 +33,7 @@ window.agendaModalsMixin = {
   },
 
   populateTechSelect() {
-    const sel = document.getElementById('apt-field-tech');
+    const sel = document.getElementById('srv-field-tech');
     if (!sel) return;
     sel.innerHTML = '<option value="">Seleccionar técnico...</option>' +
       this.technicians.map(t => `<option value="${t.id}">${utils.escape(t.name)}</option>`).join('');
